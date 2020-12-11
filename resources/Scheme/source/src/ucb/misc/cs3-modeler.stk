@@ -1,0 +1,24 @@
+;; Replacement Modeler for STk, by Brian Gaeke <brg@EECS.Berkeley.EDU>
+;; Version 2.02.1 2002/11/22 20:42:22
+;; This version of the modeler is used for CS3.  The only difference
+;; is that "using-berkeley.scm?" is defined to be true.
+
+(require "simply")
+
+;; Global variables:
+;
+; This is in support of CS3.
+;
+(define *they-know-lambda* #f)
+;
+;
+(define (using-berkeley-scm?) #t)
+(define *harvey+wright* (using-berkeley-scm?))
+(define *grillmeyer* (not (using-berkeley-scm?)))
+
+(require "modeler")
+
+(provide "cs3-modeler")
+
+; EOF
+

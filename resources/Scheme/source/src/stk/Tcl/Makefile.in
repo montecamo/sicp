@@ -1,0 +1,89 @@
+#
+# This Makefile permits to build a subset of libtcl.a. This subset contains
+# unmodified functions of the original Tcl distribution which are used in 
+# the STk interpreter. Thoses functions are principally utilities functions
+# such as hash tables, regexp, unix utilities
+#
+
+include ../config.make
+
+RANLIB   = @RANLIB@
+CFLAGS   = -DSTk_CODE -DSCM_CODE -I. -I../Src @DEFS@
+OBJ      = panic.o tclHash.o tclGet.o regexp.o tclUtil.o @LIBOBJS@
+EVOBJ    = tclEvent.o tclTimer.o tclUnixNotfy.o tclUnixTime.o  tclUnixEvent.o \
+           tclPreserve.o  tclNotify.o tclAsync.o
+EVWINOBJ = tclEvent.o tclTimer.o tclWinNotify.o tclWinTime.o tclPreserve.o \
+	   tclNotify.o tclAsync.o
+
+
+all:  unix
+unix: libtcl.a libevtcl.a
+win:  libtcl.a libevtcl-win.a
+
+libtcl.a: $(OBJ) 
+	rm -f libtcl.a
+	ar q libtcl.a $(OBJ)
+	$(RANLIB) libtcl.a
+
+libevtcl.a: $(EVOBJ) 
+	rm -f libevtcl.a
+	ar q libevtcl.a $(EVOBJ)
+	$(RANLIB) libevtcl.a
+
+libevtcl-win.a: $(EVWINOBJ) 
+	rm -f libevtcl.a
+	ar q libevtcl.a $(EVWINOBJ)
+	$(RANLIB) libevtcl.a
+
+install:
+
+install.libs: install
+	-if [ ! -d $(ardir) ] ; then mkdir -p $(ardir); fi 
+	$(CP) libtcl.a $(ardir)
+	$(RANLIB) $(ardir)/libtcl.a
+	$(CP) libevtcl.a $(ardir)
+	$(RANLIB) $(ardir)/libevtcl.a
+	-if [ ! -d $(incdir) ] ; then mkdir -p $(incdir); fi
+	$(CP) tcl.h tclInt.h tclRegexp.h $(incdir)
+
+clean: 
+	/bin/rm -f *.a *.o core *~
+
+distclean: clean
+	/bin/rm -f Makefile config.* tclConfig.sh
+
+# Files which must be generated if system does not provide the function they
+# implement
+
+getcwd.o: ./compat/getcwd.c
+	$(CC) -c $(CFLAGS) ./compat/getcwd.c
+
+opendir.o: ./compat/opendir.c
+	$(CC) -c $(CFLAGS) ./compat/opendir.c
+
+strerror.o: ./compat/strerror.c
+	$(CC) -c $(CFLAGS) ./compat/strerror.c
+
+strstr.o: ./compat/strstr.c
+	$(CC) -c $(CFLAGS) ./compat/strstr.c
+
+strtod.o: ./compat/strtod.c
+	$(CC) -c $(CFLAGS) ./compat/strtod.c
+
+strtol.o: ./compat/strtol.c
+	$(CC) -c $(CFLAGS) ./compat/strtol.c
+
+strtoul.o: ./compat/strtoul.c
+	$(CC) -c $(CFLAGS) ./compat/strtoul.c
+
+tmpnam.o: ./compat/tmpnam.c
+	$(CC) -c $(CFLAGS) ./compat/tmpnam.c
+
+waitpid.o: ./compat/waitpid.c
+	$(CC) -c $(CFLAGS) ./compat/waitpid.c
+
+fixstrtod.o: ./compat/fixstrtod.c
+	$(CC) -c $(CFLAGS) ./compat/fixstrtod.c
+
+strncasecmp.o: ./compat/strncasecmp.c
+	$(CC) -c $(CFLAGS) ./compat/strncasecmp.c

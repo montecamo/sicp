@@ -1,0 +1,13 @@
+(define (load-cs3)
+  (begin
+    (require "berkeley")
+    (require "cs3-modeler")
+    ))
+(define (load-cs61a)
+  (require "berkeley"))
+(define (load-cs3s)
+   (begin
+    (require "explorin")
+    (require "turtle-grfx")
+    (require "cs3s-modeler")
+    ))

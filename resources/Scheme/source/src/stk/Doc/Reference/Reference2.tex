@@ -1,0 +1,1769 @@
+%
+% STk Reference manual (Part 2)
+%
+%           Author: Erick Gallesio [eg@unice.fr]
+%    Creation date: ??-Nov-1993 ??:??
+% Last file update: 27-Sep-1999 15:24 (eg)
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.11 Keywords
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Keywords}
+\label{keywords}
+
+Keywords are symbolic constants which evaluate to themselves. A keyword must
+begin with a colon.
+
+\begin{entry}{%
+\proto{keyword?}{ obj}{procedure}}
+\saut
+Returns {\schtrue} if \var{obj} is a keyword, otherwise returns {\schfalse}.
+\end{entry}
+
+\begin{entry}{%
+\proto{make-keyword}{ obj}{procedure}}
+\saut
+Builds a keyword from the given \var{obj}. \var{obj} must be a symbol
+or a string. A colon is automatically prepended.
+\begin{scheme}
+(make-keyword "test")    \lev :test
+(make-keyword 'test)     \lev :test
+(make-keyword ":hello")  \lev ::hello
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{keyword->string}{ keyword}{procedure}}
+\saut
+Returns the name of \var{keyword} as a string. The leading colon is
+included in the result. %%     axe: why this asymmetry ?
+\begin{scheme}
+(keyword->string :test)    \lev ":test"
+\end{scheme}
+\end{entry}
+
+%% axe: added description of list's format. (proposals for better
+%% phrasing are welcome)
+\begin{entry}{%
+\proto{get-keyword}{ keyword list}{procedure}
+\proto{get-keyword}{ keyword list default}{procedure}}
+\saut
+
+\var{List} must be a list of keywords and their respective values.
+\ide{Get-keyword} scans the \var{list} and returns the value
+associated with the given \var{keyword}.  If the \var{keyword} does
+not appear in an odd position in \var{list}, the specified
+\var{default} is returned, or an error is raised if no default was
+specified.
+\begin{scheme}
+(get-keyword :one '(:one 1 :two 2)) \lev 1
+(get-keyword :four '(:one 1 :two 2) \schfalse) \lev \schfalse
+(get-keyword :four '(:one 1 :two 2)) \lev \scherror
+\end{scheme}
+\end{entry}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.12: Tk commands
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Tk commands}
+
+\label{tkcommand}
+As we mentioned in the introduction, {\stk} can easily communicate
+with the Tk toolkit\index{Tk toolkit}\index{toolkit}. All the commands
+defined by the Tk toolkit are visible as \ide{Tk-command}s, a basic
+type recognized by the interpreter.  \ide{Tk-command}s can be called
+like regular scheme procedures, serving as an entry point into the Tk
+library.
+%
+\vskip3mm
+\begin{note}
+  Some \ide{Tk-command}s can dynamically create other
+  \ide{Tk-command}s.  For instance, execution of the expression
+  \begin{scheme}
+(label '.lab)
+  \end{scheme} %
+  will create a new \ide{Tk-command} called ``\var{.lab}''. This new
+  object, which was created by a primitive \ide{Tk-command}, will be
+  called a \var{widget}\index{widget}.
+\end{note}
+
+\begin{note}
+When a new widget is created, it captures its creation environment. This
+permits to have bindings which access variables in the scope of the widget
+creation call (see \ref{addresses}).  %% ??
+\end{note}
+
+\begin{entry}{%
+\proto{tk-command?}{ obj}{procedure}}
+\saut
+Returns {\schtrue} if \var{obj} is a \ide{Tk-command}, otherwise
+returns {\schfalse}.
+\begin{scheme}
+(tk-command? label) \lev {\schtrue}
+(begin (label '.lab) (tk-command? .lab)) \lev {\schtrue}
+(tk-command? 12) \lev {\schfalse}
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{widget?}{ obj}{procedure}}
+\saut
+Returns {\schtrue} if \var{obj} is a widget, otherwise returns
+{\schfalse}. A widget is a \ide{Tk-command} created by a primitive
+\ide{Tk-command} such as \ide{button}, \ide{label}, \ide{menu}, etc.
+\begin{scheme}
+(widget? label) \lev {\schfalse}
+(begin (label '.lab) (widget? .lab)) \lev {\schtrue}
+(widget? 12) \lev {\schfalse}
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{widget->string}{ widget}{procedure}}
+\saut
+Returns the widget name of \var{widget} as a string.
+\begin{scheme}
+(begin (label '.lab) (widget->string .lab)) \lev ".lab"
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{string->widget}{ str}{procedure}}
+\saut
+Returns the widget whose name is \var{str} if it exists; otherwise
+returns {\schfalse}.
+\begin{scheme}
+(begin (label '.lab) (string->widget ".lab")) \lev the \ide{Tk-command} named ".lab"
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{widget-name}{ widget}{procedure}}
+\saut
+Returns the widget name of \var{widget} as a symbol. 
+\begin{scheme}
+(begin (label '.lab) (widget->name .lab)) \lev .lab
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{tk-get}{ widget opt}{procedure}}
+\saut
+Returns the value of the widget option \var{opt} of \var{widget}. 
+\begin{scheme}
+(begin 
+   (label '.lab :text "Hello" :bd 3) 
+   (cons (tk-get .lab :bd) (tk-get .lab :text)))
+   \lev (3 . "Hello")
+\end{scheme}
+See the online documentation for all the options provided by the Tk widgets.
+(see \ref{help}).
+\end{entry}
+
+\begin{entry}{%
+\proto{tk-set!}{ widget opt value}{procedure}}
+\saut
+Sets the value of the widget option \var{opt} of \var{widget} to the 
+given \var{value}.
+\begin{scheme}
+(begin 
+   (label '.lab :text "Hello") 
+   (tk-set! .lab :text "Hello, world!")
+   (tk-get .lab :text))
+   \lev "Hello, world!"
+\end{scheme}
+See the online documentation for all the options provided by the Tk widgets.
+(see \ref{help}).
+\end{entry}
+
+
+\begin{entry}{
+\proto{set-widget-data!}{ widget expr}{procedure}}
+\saut
+%
+\ide{Set-widget-data!} associates arbitrary data with a \var{widget}.
+The system makes no assumptions about the type of {\tt expr}; the data
+is for programmer convenience only. As shown below, it could be used
+as a kind of property list for widgets.
+\end{entry}
+
+\begin{entry}{
+\proto{get-widget-data}{ widget}{procedure}}
+\saut
+Returns the data previously associated with \var{widget} if it exists;
+otherwise returns {\schfalse}.
+\begin{scheme}
+(begin 
+   (set-widget-data! .w '(:mapped {\schtrue} :geometry "10x50"))
+   (get-keyword :mapped (get-widget-data .w))) \lev {\schtrue}
+\end{scheme}
+\end{entry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.13:  Modules
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Modules}
+\label{module}
+
+{\stk} modules can be used to organize a program into separate
+environments (or\textit{name spaces}). Modules provide a clean way to
+organize and enforce the barriers between the components of a program.
+
+
+{\stk} provides a simple module system which is largely inspired from
+the one of Tung and Dybvig exposed in \cite{Tung-Dybvig-96}. As their
+modules system, {\stk} modules are defined to be easily used in an
+interactive environment. 
+
+\begin{entry}{%
+\proto{define-module}{ name \hyper{body}} {syntax}}
+\saut
+
+\var{Define-module} evaluates the expressions which are in
+\hyper{body} in the environment of the module \var{name}. \var{name}
+must be a valid symbol. If this symbol has not already been used to
+define a module, a new module, named \var{name}, is created.
+Otherwise, \hyper{body} is evaluated in the environment of the (old)
+module \var{name}\footnote{ In fact {\tt define-module} on a given name
+  defines a new module only the first time it is invoked on this name.
+  By this way, inteactively reloading a module does not define a new entity,
+  and the other modules which use it are not altered.}.
+
+Definitions done in a module are local to the module and do not interact with 
+the definitions of other modules. Consider the following definitions,
+\begin{scheme}
+  (define-module M1
+     (define a 1))
+
+  (define-module M2
+    (define a 2)
+    (define b (* 2 x)))
+\end{scheme}
+Here, two modules are defined and they both bind the symbol \texttt{a} to a 
+value. However, since \texttt{a} has been defined in two distincts modules
+they denote two different locations. 
+
+The ``\texttt{STk}'' module, which is predefined, is a special module
+which contains all the \textit{global variables} of a {\rrrr} program.
+A symbol defined in the \texttt{STk} module, if not hidden by a local
+definition, is always visible from inside a module. So, in the
+previous exemple, the \texttt{x} symbol refers the \texttt{x} symbol 
+defined in the \texttt{STk} module.
+
+The result of \var{define-module} is undefined.
+\end{entry}
+
+
+\begin{entry}{%
+\proto{find-module}{ name} {procedure}
+\proto{find-module}{ name default} {procedure}}
+\saut
+
+{\stk} modules are first class objects and \ide{find-module} returns the
+module associated to \var{name} if it exists. If there is no module
+associated to \var{name}, an error is signaled if no \var{default} is
+provided, otherwise \ide{find-module} returns default.
+\end{entry}
+
+\begin{entry}{%
+\proto{module?}{ object} {procedure}}
+\saut
+Returns {\schtrue} if \var{object} is a module and {\schfalse} otherwise.
+\begin{scheme}
+  (module? (find-module 'STk)) \lev \schtrue
+  (module? 'STk) \lev \schfalse
+  (module? 1) \lev \schfalse
+\end{scheme}
+\end{entry}
+
+
+\begin{entry}{%
+\proto{export}{ \hyperi{symbol} \hyperii{symbol}\ldots} {syntax}}
+\saut
+
+Specifies the symbols which are exported (i.e. \textit{visible}) outside 
+the current module. By default, symbols defined in a module are not 
+visible outside this module, excepted the symbols which appear in an
+\texttt{export} clause. 
+
+If several \texttt{export} clauses appear in a module, the set of
+exported symbols is determined by {\em unioning} symbols exported
+in all the \texttt{export} clauses.
+
+The result of \var{export} is undefined.
+\end{entry}
+
+\begin{entry}{%
+\proto{export-all-symbols}{ } {procedure}}
+\saut
+
+Exports all the symbols defined in the current module.
+
+The result of \var{export-all-symbols} is undefined.
+\end{entry}
+
+
+
+\begin{entry}{%
+\proto{import}{ \hyperi{module} \hyperii{module}\ldots} {syntax}}
+\saut
+
+Specifies the modules which are imported by the current module.
+Importing a module makes the symbols it exports visible to the
+importer, if not hidden by local definitions. When a symbol 
+is exported by several of the imported modules, the location denoted by
+this symbol in the importer module correspond to the one of the first module
+in the list (\hyperi{module} \hyperii{module}\ldots) which export it. 
+
+If several \texttt{import} clauses appear in a module, the set of
+imported modules  is determined by appending the various list of modules 
+in their apparition order. 
+
+\begin{scheme}
+(define-module M1
+  (export a b)
+  (define a 'M1-a)
+  (define b 'M1-b))
+
+(define-module M2
+  (export b c)
+  (define b 'M2-b)
+  (define c 'M2-c))
+
+(define-module M3
+  (import M1 M2)
+  (display (list a b c)))  \lev displays (m1-a m1-b m2-c)
+\end{scheme}
+\begin{note}
+  There is no kind of \emph{transitivity} in module importations: when
+  the module $C$ imports the module $B$ which an importer of $A$, the
+  symbols of $A$ are not visible from $C$, except by explicitly
+  importing the $A$ module from $C$.
+\end{note}
+\begin{note}
+  The module \texttt{STk}, which contains the \textit{global
+    variables} is always implicitly imported from a
+  module.Furthermore, this module is always placed at the end of the
+  list of imported modules. 
+\end{note}
+\end{entry}
+
+\begin{entry}{%
+\proto{export-symbol}{ symbol module} {procedure}}
+\saut
+Exports \var{symbol} from \var{module}. This procedure can be useful, when
+debugging a program, to make visible a given symbol without reloading
+or redefining the module where this symbol was defined.
+\end{entry}
+
+\begin{entry}{%
+\proto{export-all-symbols}{} {procedure}}
+\saut
+
+Exports all the symbols of current module . If symbols are added to
+the current \var{module} after the call to \ide{export-all-symbols},
+they are automatically exported.
+
+\begin{note}
+  The \texttt{STk} module export all the symbols which are defined in
+  it (i.e. \textit{global variables} are visible, if not hidden, from
+  all the modules of a program.
+\end{note}
+\end{entry}
+
+\begin{entry}{%
+\proto{with-module}{ name \hyperi{expr} \hyperii{expr} \ldots} {syntax}}
+\saut
+
+Evaluates the expressions of \hyperi{expr} \hyperii{expr} \ldots in
+the environment of module \var{name}. Module \var{name} must have been created
+previously by a \ide{define-module}. The result of \ide{with-module}
+is the result of the evaluation of the last \hyper{expr}.
+
+\begin{scheme}
+  (define-module M
+    (define a 1)
+    (define b 2))
+  
+  (with-module M 
+     (+ a b))   \lev 3
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{current-module}{} {procedure}}
+\saut
+
+Returns the current-module.
+\begin{scheme}
+  (define-module M 
+     ...)
+   
+   (with-module M
+     (cons (eq? (current-module) (find-module 'M))
+           (eq? (current-module) (find-module 'STk))))
+       \lev (\schtrue . \schfalse)
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{select-module}{ name} {syntax}}
+\saut
+
+Evaluates the expressions which follows in module \var{name}
+environment.  Module \var{name} must have been created previously by a
+\ide{define-module}. The result of \ide{select-module} is undefined.
+\ide{Select-module} is particularly useful when debugging since it
+allows to place toplevel evaluation in a particular module. The
+following transcript shows an usage of
+\ide{select-module}\footnote{This transcript uses the default value for the 
+  function \texttt{repl-display-prompt} (see page \pageref{repl-display-prompt})
+  which displays the name of the current module in the prompt.}:
+
+\begin{scheme}
+STk> (define foo 1)
+STk> (define-module bar
+        (define foo 2))
+STk> foo
+1
+STk> (select-module bar)
+bar> foo
+2
+bar> (select-module STk) 
+STk> 
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{module-name}{ module} {procedure}}
+\saut
+Returns the name (a symbol) associated to a \var{module}.
+\end{entry}
+
+\begin{entry}{%
+\proto{module-imports}{ module} {procedure}}
+\saut
+Returns the list modules that \var{module} imports.
+\end{entry}
+
+\begin{entry}{%
+\proto{module-exports}{ module} {procedure}}
+\saut
+Returns the list of symbols exported by \var{module}.
+\end{entry}
+
+\begin{entry}{%
+\proto{module-symbols}{ module} {procedure}}
+\saut
+Returns the list symbols that ere defined in \var{module}.
+\end{entry}
+
+
+\begin{entry}{%
+\proto{all-modules}{ } {procedure}}
+\saut
+Returns a list of all the living modules.
+\end{entry}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.13:  Environments
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Environments}
+
+\label{environment}
+Environments are first class objects in STk. The following primitives
+are defined on environments.
+
+\begin{entry}{%
+\proto{environment?}{ obj} {procedure}}
+\saut
+Returns {\schtrue} if \var{obj} is an environment, otherwise returns
+{\schfalse}.
+\end{entry}
+
+\begin{entry}{%
+\proto{the-environment} {} {procedure}}
+\saut
+Returns the current environment.
+\end{entry}
+
+\begin{entry}{%
+\proto{global-environment} {} {procedure}}
+\saut
+Returns the ``global'' environment (i.e. the toplevel environment).
+\mainindex{top level environment}
+\end{entry}
+
+\begin{entry}{%
+\proto{parent-environment} { env} {procedure}}
+\saut
+Returns the parent environment of \var{env}. If env is the ``global''
+environment (i.e. the toplevel environment), \ide{parent-environment}
+returns {\schfalse}.
+\end{entry}
+
+\begin{entry}{%
+\proto{environment->list}{ environment} {procedure}}
+\saut
+Returns a list of {\em a-lists}, representing the bindings in
+\var{environment}. Each {\em a-list} describes one level of bindings,
+with the innermost level coming first.
+\begin{scheme}
+(define E (let ((a 1) (b 2))
+            (let ((c 3))
+              (the-environment))))
+
+(car (environment->list E)) \ev ((c . 3))
+
+(cadr (environment->list E)) \ev ((b . 2) (a . 1))
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{procedure-environment}{ procedure} {procedure}}
+\saut
+Returns the environment associated with \var{procedure}.
+\ide{Procedure-environment} returns {\schfalse} if \var{procedure}
+is not a closure.
+\begin{scheme}
+(define foo (let ((a 1)) (lambda () a)))
+(car (environment->list 
+         (procedure-environment foo))) 
+                      \ev ((a . 1))
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{module-environment}{ module} {procedure}}
+\saut
+Returns the environment associated to the module \var{module}.
+\begin{scheme}
+(define-module M 
+   (define a 1))
+(car (environment->list 
+         (module-environment (find-module 'M))))
+                      \ev ((a . 1))
+\end{scheme}
+\end{entry}
+
+
+\begin{entry}{%
+\proto{symbol-bound?}{ symbol}{procedure}
+\proto{symbol-bound?}{ symbol environment}{procedure}}
+\saut
+Returns {\schtrue} if \var{symbol} has a value in the given
+\var{environment}, otherwise returns {\schfalse}. \var{Environment}
+may be omitted, in which case it defaults to the global environment.
+\end{entry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.14: Macros
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Macros}
+\label{macros}
+
+{\stk} provides low level macros. 
+
+\begin{note}
+{\stk} macros are not the sort of macros defined in the appendix of {\rrrr},
+but rather the macros one can find in most of Lisp dialects.
+\end{note}
+
+\begin{entry}{%
+\proto{macro}{ \hyper{formals} \hyper{body}}{\exprtype}}
+\saut
+{\tt Macro} permits to create a macro. When a macro is called, the whole form
+(i.e. the macro itself and its parameters) is passed to the macro body.
+Binding association is done in the environment of the call. The result of the
+binding association is called the {\em macro-expansion}\index{macro-expansion}.
+The result of the macro call is the result of the evaluation of the
+macro expansion in the call environment.
+%% FIXME: This needs rephrasing...
+
+\begin{scheme}
+(define foo (macro f `(quote ,f)))
+(foo 1 2 3) \ev (foo 1 2 3)
+
+(define 1+ (macro form (list + (cadr form) 1)))
+(let ((x 1)) (1+ x)) \ev 2
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{macro?}{ obj}{procedure}}
+\saut
+Returns {\schtrue} if \var{obj} is a macro, otherwise returns {\schfalse}.
+\end{entry}
+
+\begin{entry}{%
+\proto{macro-expand-1}{ form}{procedure}
+\proto{macro-expand}{ form}{procedure}}
+\saut
+\ide{Macro-expand-1} returns the macro expansion of \var{form} if
+it is a macro call, otherwise \var{form} is returned unchanged. 
+\ide{Macro-expand} is similar to \ide{macro-expand-1}, but repeately 
+expand \var{form} until it is no longer a macro call.
+\begin{scheme}
+(define 1- (macro form `(-  ,(cadr form) 1))) 
+(define -- (macro form `(1- ,(cadr form)))) 
+(macro-expand-1 '(1- 10)) \ev (- 10 1) 
+(macro-expand   '(1- 10)) \ev (- 10 1) 
+(macro-expand-1 '(-- 10)) \ev (1- 10)
+(macro-expand   '(-- 10)) \ev (- 10 1)
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{macro-expand}{ form}{procedure}}
+\saut
+Returns the macro expansion of \var{form} if it is a macro call, otherwise
+\var{form} is returned unchanged. Macro expansion continue until, the form
+obtained is 
+\begin{scheme}
+(define 1- (macro form (list '- (cadr form) 1)))
+(macro-expand '(1- 10)) \ev (- 10 1)
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{macro-body}{ macro}{procedure}}
+\saut
+Returns the body of \var{macro}
+\begin{scheme}
+(macro-body 1+)
+                \ev (macro form (list + (cadr form) 1))
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{define-macro}{ (\hyper{name} \hyper{formals}) \hyper{body}}{macro}}
+\saut
+\ide{Define-macro} is a macro which permits to define a macro more easily than
+with the \ide{macro} form. It is similar to the {\tt defmacro} of Common
+Lisp~\cite{CLtL2}.
+\begin{scheme}
+(define-macro (incr x) `(set! ,x (+ ,x 1)))
+(let ((a 1)) (incr a) a) \ev 2
+
+(define-macro (when test . body)
+  `(if ,test ,@(if (null? (cdr body)) body `((begin ,@body)))))
+(macro-expand '(when a b)) \ev (if a b)
+(macro-expand '(when a b c d)) 
+                           \ev (if a (begin b c d))
+\end{scheme}
+
+\begin{note}
+Calls to macros defined by \ide{define-macro} are physically replaced by their
+macro-expansion if the variable \ide{*debug*} is {\schfalse} (i.e. their body
+is ``in-lined'' in the macro call). To avoid this
+feature, and to ease debugging, you have to set this variable to {\schtrue}.
+(See also \ref{uncode}).
+\end{note}
+\end{entry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.15: System procedures
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{System procedures}
+
+This section lists a set of procedures which permits to access some system
+internals.
+
+
+\begin{entry}{%
+\proto{expand-file-name}{ string} {procedure}}
+\saut
+\ide{Expand-file-name} expands the filename given in \var{string} to
+an absolute path. This function understands the {\em tilde
+  convention}\index{tilde expansion} for filenames.
+
+\begin{scheme}
+;; Current directory is /users/eg/STk
+(expand-file-name "..") \lev "/users/eg"
+(expand-file-name "{\tilda}root/bin) \lev "/bin"
+(expand-file-name "{\tilda}/STk)" \lev "/users/eg/STk"
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{canonical-path}{ path} {procedure}}
+\saut
+Expands all symbolic links in \var{path} and returns its canonicalized
+absolute pathname. The resulting path do not have symbolic links. If
+\var{path} doesn't designate a valid pathname, \var{canonical-path} returns 
+\schfalse.
+\end{entry}
+
+
+\begin{entry}{%
+\proto{dirname}{ string} {procedure}}
+\saut
+Returns a string containing all but the last component of the path name given in 
+\var{string}.
+\begin{scheme}
+(dirname "/a/b/c.stk") \lev "/a/b"
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{basename}{ string} {procedure}}
+\saut
+Returns a string containing the last component of the path name given in 
+\var{string}.
+\begin{scheme}
+(basname "/a/b/c.stk") \lev "c.stk"
+\end{scheme}
+\end{entry}
+ 
+\begin{entry}{%
+\proto{decompose-file-name}{ string} {procedure}}
+\saut
+Returns an ``exploded'' list of the path name components given in
+\var{string}.
+The first element in the list denotes if the given \var{string} is an
+absolute path or a relative one, being {\tt "/"} or {\tt "."} respectively.
+Each component of this list is a string.
+\begin{scheme}
+(decompose-file-name "/a/b/c.stk") \lev ("/" "a" "b" "c.stk")
+(decompose-file-name "a/b/c.stk")  \lev ("." "a" "b" "c.stk")
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{file-is-directory?}{ string} {procedure}
+\proto{file-is-regular?}{ string} {procedure}
+\proto{file-is-readable?}{ string} {procedure}
+\proto{file-is-writable?}{ string} {procedure}
+\proto{file-is-executable?}{ string} {procedure}
+\proto{file-exists?}{ string} {procedure}}
+\saut
+Returns {\schtrue} if the predicate is true for the path name given in
+\var{string}; returns {\schfalse} otherwise (or if \var{string} denotes a file
+which does not exist).
+\end{entry}
+
+\begin{entry}{%
+\proto{glob}{ \vri{pattern} \vrii{pattern} \dotsfoo} {procedure}}
+\saut
+
+The code for \ide{glob} is taken from the Tcl library. It performs
+file name ``globbing'' in a fashion similar to the csh shell.
+\ide{Glob} returns a list of the filenames that match at least one of
+the {\em pattern} arguments.  The \var{pattern} arguments may contain
+the following special characters:
+
+\begin{itemize}
+\item ? Matches any single character.
+\item \etoile~Matches any sequence of zero or more characters.
+\item {\leftbracket}chars\rightbracket~Matches any single character in chars. 
+      If chars contains a sequence of the form {\tt a-b} then any character between
+       {\tt a} and {\tt b} (inclusive) will match.
+\item  \verb+\+x  Matches the character {\tt x}.
+\item \{a,b,...\} Matches any of the strings {\tt a}, {\tt b}, etc.
+\end{itemize}
+
+As with csh, a ``.'' at the beginning of a file's name or just after a ``/''
+must be matched explicitly or with a \{\} construct.  In addition, all ``/''
+characters must be matched explicitly.
+
+If the first character in a pattern is ``{\tilda}'' then it refers to
+the home directory of the user whose name follows the ``{\tilda}''.
+If the ``{\tilda}'' is followed immediately by ``/'' then the value of
+the environment variable HOME is used.
+
+\ide{Glob} differs from csh globbing in two ways.  First, it does not
+sort its result list (use the \ide{sort} procedure if you want the list sorted).
+Second, glob only returns the names of files that actually exist; in csh no
+check for existence is made unless a pattern contains a ?, \etoile, or  
+\leftbracket\rightbracket
+construct.
+\end{entry}
+
+\begin{entry}{%
+\proto{remove-file}{ string} {procedure}}
+\saut
+Removes the file whose path name is given in \var{string}.
+The result of \ide{remove-file} is undefined.
+\end{entry}
+
+\begin{entry}{%
+\proto{rename-file}{ \vri{string} \vrii{string}} {procedure}}
+\saut
+Renames the file whose path-name is contained in \vri{string} in the path 
+name given by \vrii{string}. The result of \ide{rename-file} is undefined.
+\end{entry}
+
+\begin{entry}{%
+\proto{temporary-file-name}{ string} {procedure}}
+\saut
+
+Generates a unique temporary file name. The value returned by
+\ide{temporary-file-name} is the newly generated name of {\schfalse}
+if a unique name cannot be generated.
+\end{entry}
+
+\begin{entry}{%
+\proto{getcwd}{} {procedure}}
+\saut
+\ide{Getcwd} returns a string containing the current working directory.
+\end{entry}
+
+\begin{entry}{%
+\proto{chdir}{ string} {procedure}}
+\saut
+\ide{Chdir} changes the current directory to the directory given in
+\var{string}.
+\end{entry}
+
+\begin{entry}{%
+\proto{getpid}{ string} {procedure}}
+\saut
+Returns the system process number of the current {\stk} interpreter (i.e. the
+Unix {\em pid}). Result is an integer.
+\end{entry}
+
+\begin{entry}{%
+\proto{system}{ string} {procedure}
+\proto{!}{ string} {procedure}}
+\saut
+Sends the given \var{string} to the system shell \var{/bin/sh}. The result of
+\ide{system} is the integer status code the shell returns.
+\end{entry}
+
+\begin{entry}{%
+\proto{exec}{ string} {procedure}}
+\saut
+Executes the command contained in \var{string} and redirects its output in
+a string. This string constitutes the result of \ide{exec}.
+\end{entry}
+
+\begin{entry}{%
+\proto{getenv}{ string} {procedure}}
+\saut
+Looks for the environment variable named \var{string} and returns its
+value as a string, if it exists. Otherwise, \ide{getenv} returns
+{\schfalse}.
+\begin{scheme}
+(getenv "SHELL")   \lev "/bin/zsh"
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+\proto{setenv!}{ var value} {procedure}}
+\saut
+Sets the environment variable \var{var} to \var{value}.  \var{Var} and
+\var{value} must be strings. The result of {\tt setenv!} is undefined.
+\begin{scheme}
+(getenv "SHELL")   \lev "/bin/zsh"
+\end{scheme}
+\end{entry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.16: Addresses
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Addresses}
+
+\label{addresses}
+An {\em address} is a Scheme object which contains a reference to
+another Scheme object. This type can be viewed as a kind of pointer to
+a Scheme object.  Addresses, even though they are very dangerous, have
+been introduced in {\stk} so that objects that have no ``readable''
+external representation can still be transformed into strings and back
+without loss of information. Adresses were useful with pre-3.0 version
+of {\stk}; their usage is now {\bf stongly discouraged}, unless you know what you
+do. In particular, an address can designate an object at a time and
+another one later (i.e. after the garbage collector has marked the zone
+as free).
+
+Addresses are printed with a special syntax: {\tt {\sharpsign}pNNN},
+where {\tt NNN} is an hexadecimal value. Reading this value back
+yields the original object whose location is {\tt NNN}.
+
+\begin{entry}{%
+\proto{address-of}{ obj} {procedure}}
+\saut
+Returns the address of \ide{obj}.
+\end{entry}
+
+\begin{entry}{%
+\proto{address?}{ obj} {procedure}}
+\saut
+Returns {\schtrue} if \var{obj} is an address; returns {\schfalse} otherwise.
+\end{entry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.17: Signals
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Signals}
+
+\label{signals}
+{\stk} allows the use to associate handlers to signals. Signal
+handlers for a given signal can even be chained in a list. When a
+signal occurs, the first signal of the list is executed. Unless this
+signal yields the symbol \ide{break} the next signal of the list is
+evaluated. When a signal handler is called, the integer value of this
+signal is passed to it as (the only) parameter.
+
+The following POXIX.1\mainindex{POSIX.1} constants for signal numbers
+are defined: \ide{SIGABRT}, \ide{SIGALRM}, \ide{SIGFPE}, \ide{SIGHUP},
+\ide{SIGILL}, \ide{SIGINT}, \ide{SIGKILL}, \ide{SIGPIPE}, {\tt
+  SIGQUIT}, \ide{SIGSEGV}, \ide{SIGTERM}, \ide{SIGUSR1}, {\tt
+  SIGUSR2}, \ide{SIGCHLD}, \ide{SIGCONT}, \ide{SIGSTOP}, {\tt
+  SIGTSTP}, \ide{SIGTTIN}, \ide{SIGTTOU}.  Moreover, the following
+constants, which are often available on most systems are also
+defined\footnote{Some of these constants may be undefined if they are
+  not supported by your system}: \ide{SIGTRAP}, \ide{SIGIOT}, {\tt
+  SIGEMT}, \ide{SIGBUS}, \ide{SIGSYS}, \ide{SIGURG}, \ide{SIGCLD},
+\ide{SIGIO}, \ide{SIGPOLL}, \ide{SIGXCPU}, \ide{SIGXFSZ}, {\tt
+  SIGVTALRM}, \ide{SIGPROF}, \ide{SIGWINCH}, \ide{SIGLOST}.
+
+See your Unix documentation for the exact meaning of each constant or
+\cite{Posix.1-90}. Use symbolic constants rather than their numeric
+value if you plan to port your program on another system.
+
+\label{GCSTART}
+A special signal, managed by the interpreter, is also defined: {\tt
+  SIGHADGC}. This signal is raised when the garbage collector phase
+terminates.
+
+When the interpreter starts running, all signals are sets to their
+default value, excepted \ide{SIGINT} (generally bound to {\ide
+  Control-C}) which is handled specially.
+
+\begin{entry}{%
+\proto{set-signal-handler!}{ sig handler} {procedure}}
+\saut
+Replace the handler for signal \var{sig} with \var{handler}. 
+Handler can be 
+\begin{itemize}
+\item [-] {\schtrue} to reset the signal handler for \var{sig} to the
+  default system handler.
+\item [-] {\schfalse} to completly ignore  \var{sig} (Note that
+  Posix.1 states that \ide{SIGKILL} and \ide{SIGSTOP} cannot be caught
+  or ignored).
+\item [-] a one parameter procedure.
+\end{itemize}
+This procedure returns the new handler, or (length 1) handler list,
+associated to \var{sig}.
+
+\begin{scheme}
+(let* ((x       \schfalse)
+       (handler (lambda (i) (set! x \schtrue))))
+  (set-signal-handler! |SIGHADGC| handler)
+  (gc)
+  x)  \lev \schtrue
+\end{scheme}
+\end{entry}
+
+\begin{entry}{%
+    \proto{add-signal-handler!}{ sig handler} {procedure}} 
+\saut 
+Adds \var{handler} to the list of handlers for signal \var{sig}. If
+the old signal handler is a boolean, this procedure is equivalent to
+\ide{set-signal-handler!}. Otherwise, the new handler is added in
+front of the previous list of handler. This procedure returns the new
+handler, or handler list, associated to \var{sig}.
+
+\begin{scheme}
+(let* ((x        '())
+       (handler1 (lambda (i) (set! x (cons 1 x))))
+       (handler2 (lambda (i) (set! x (cons 2 x)))))
+  (add-signal-handler! |SIGHADGC| handler1)
+  (add-signal-handler! |SIGHADGC| handler2)
+  (gc)
+  x)  \lev (1 2)
+\end{scheme}
+\saut
+\begin{scheme}
+(let* ((x        '())
+       (handler1 (lambda (i) (set! x (cons 1 x))))
+       (handler2 (lambda (i) (set! x (cons 2 x)) 'break)))
+  (add-signal-handler! |SIGHADGC| handler1)
+  (add-signal-handler! |SIGHADGC| handler2)
+  (gc)
+  x)  \lev (2)
+\end{scheme}
+\end{entry}
+
+
+\begin{entry}{%
+\proto{get-signal-handlers}{} {procedure}
+\proto{get-signal-handlers}{ sig} {procedure}}
+\saut 
+Returns the handlers, or the list of handlers, associated to the signal
+\var{sig}.  If \var{sig} is omitted, \ide{get-signal-handlers} returns
+a vector of all the signal handlers currently in effect. 
+\end{entry}
+
+
+\begin{entry}{%
+\proto{send-signal}{ sig} {procedure}}
+\saut 
+Sends the signal \var{sig} to the running program.
+\end{entry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.18: Hash tables
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Hash tables}
+
+\label{hashtables}
+A hash table consists of zero or more entries, each consisting of a key and a
+value. Given the key for an entry, the hashing function can very quickly
+locate the entry, and hence the corresponding value. There may be at most one
+entry in a hash table with a particular key, but many entries may have the
+same value.
+
+{\stk} hash tables grow gracefully as the number of entries increases, so that
+there are always less than three entries per hash bucket, on average.  This
+allows for fast lookups regardless of the number of entries in a table.
+
+\vskip3mm
+\begin{note}
+Hash table manipulation procedures are built upon the efficient Tcl hash
+table package.
+\end{note}
+
+\begin{entry}{
+\proto{make-hash-table}{}{ procedure}
+\proto{make-hash-table}{ comparison}{ procedure}
+\proto{make-hash-table}{ comparison hash}{ procedure}}
+\saut
+\ide{Make-hash-table} admits three different forms. 
+The most general form admit two arguments. The first argument is a
+comparison function  which determine how keys are compared; the second
+argument is a function which computes a hash code for an object and
+returns the hash code as a non negative integer. Objets with the same
+hash code are stored in an A-list registered in the bucket
+corresponding to the key.
+
+If omitted, 
+\begin{itemize}
+\item {\tt hash} defaults to the \ide{hash-table-hash}
+procedure. 
+\item {\tt comparison } defaults to the \ide{eq?} procedure
+\end{itemize}
+
+Consequently, 
+\begin{scheme}
+(define h (make-hash-table))
+\end{scheme}
+is equivalent to
+\begin{scheme}
+(define h (make-hash-table eq? hash-table-hash))
+\end{scheme}
+Another interesting example is 
+\begin{scheme}
+(define h (make-hash-table string-ci=? string-length))
+\end{scheme}
+which defines a new hash table which uses {\tt string-ci=?} for
+comparing keys. Here, we use the string-length as a (very simple) 
+hashing function. Of course, a function which gives a key depending 
+of the characters composing the string gives a better repartition
+and should probably enhance performances. For instance, the following
+call to {\tt make-hash-table} should return a more efficient, even if
+not perfect, hash table:
+\begin{scheme}
+(make-hash-table 
+    string-ci=? 
+    (lambda (s)
+      (let ((len (string-length s)))
+        (do ((h 0)  (i 0 (+ i 1)))
+            ((= i len) h)
+          (set! h (+ h (char->integer 
+                         (char-downcase (string-ref s i)))))))))
+\end{scheme}
+
+\begin{note}
+Hash tables with a comparison function equal to \ide{eq?} or {\tt
+string=?} are handled in an more efficient way (in fact, they
+don't use the \ide{hash-table-hash} fucntion to speed up hash table
+retrievals).
+\end{note}
+\end{entry}
+ 
+\begin{entry}{
+\proto{hash-table?}{ obj}{ procedure}}
+\saut
+Returns {\schtrue} if \var{obj} is a hash table, returns {\schfalse} otherwise.
+\end{entry}
+
+\begin{entry}{
+\proto{hash-table-hash}{ obj}{ procedure}}
+\saut
+\ide{hash-table-hash} computes a hash code for an object and returns
+the hash code as a non negative integer. A property of {\tt
+hash-table-hash} is that 
+\begin{quote}
+{\tt (equal? x y)} implies {\tt (equal? (hash-table-hash x) (hash-table-hash y)}
+\end{quote}
+as the the Common Lisp {\tt sxhash} function from which this procedure is
+modeled.
+\end{entry}
+
+\begin{entry}{
+\proto{hash-table-put!}{ hash key value}{ procedure}}
+\saut
+\ide{Hash-table-put!} enters an association between \var{key} and \var{value} in the
+\var{hash} table. The value returned by \ide{hash-table-put!} is undefined.
+\end{entry}
+
+\begin{entry}{
+\proto{hash-table-get}{ hash key}{ procedure}
+\proto{hash-table-get}{ hash key default}{ procedure}}
+\saut
+\ide{Hash-table-get} returns the value associated with \var{key} in
+the given \var{hash} table. If no value has been associated with \var{key} in
+\var{hash}, the specified \var{default} is returned if given; otherwise an
+error is raised.
+\begin{scheme}
+(define h1 (make-hash-table))
+(hash-table-put! h1 'foo (list 1 2 3))
+(hash-table-get  h1 'foo) \lev (1 2 3)
+(hash-table-get  h1 'bar 'absent) \lev absent
+(hash-table-get  h1 'bar) \lev \scherror
+(hash-table-put! h1 '(a b c) 'present)
+(hash-table-get  h1 '(a b c) 'absent) \lev 'absent
+
+(define h2 (make-hash-table equal?))
+(hash-table-put! h2 '(a b c) 'present)
+(hash-table-get  h2 '(a b c)) \lev 'present
+\end{scheme}
+\end{entry}
+
+
+\begin{entry}{
+\proto{hash-table-remove!}{ hash key}{ procedure}}
+\saut 
+\var{hash} must be a hash table containing an entry for \var{key}.
+\ide{Hash-table-remove!} deletes the entry for  \var{key} in
+\var{hash}, if it exists. Result of {\tt Hash-table-remove!} is unspecified. 
+
+\begin{scheme}
+(define h (make-hash-table))
+(hash-table-put! h 'foo (list 1 2 3))
+(hash-table-get h 'foo) \lev (1 2 3)
+(hash-table-remove! h 'foo) 
+(hash-table-get h 'foo 'absent) \lev absent
+\end{scheme}
+\end{entry}
+
+\begin{entry}{
+\proto{hash-table-for-each}{ hash proc}{procedure}}
+\saut %
+\var{Proc} must be a procedure taking two arguments.
+\ide{Hash-table-for-each} calls \var{proc} on each key/value
+association in \var{hash}, with the key as the first argument and the
+value as the second.  The value returned by \ide{hash-table-for-each}
+is undefined. 
+\vskip3mm
+\begin{note}
+The order of application of \var{proc} is unspecified.
+\end{note}
+\begin{scheme}
+(let ((h   (make-hash-table))
+      (sum 0))
+  (hash-table-put! h 'foo 2)
+  (hash-table-put! h 'bar 3)
+  (hash-table-for-each h (lambda (key value)
+                           (set! sum (+ sum value))))
+  sum) \lev 5
+\end{scheme}
+\end{entry}
+
+\begin{entry}{
+\proto{hash-table-map}{ hash proc}{procedure}}
+\saut %
+\var{Proc} must be a procedure taking two arguments.
+\ide{Hash-table-map} calls \var{proc} on each entry in \var{hash},
+with the entry's key as the first argument and the entry's value as
+the second.  The result of \ide{hash-table-map} is a list of the
+values returned by \var{proc}, in unspecified order. %
+\vskip3mm
+\begin{note}
+The order of application of \var{proc} is unspecified.
+\end{note}
+\begin{scheme}
+(let ((h (make-hash-table)))
+  (dotimes (i 5) 
+    (hash-table-put! h i (number->string i)))
+  (hash-table-map h (lambda (key value)
+                       (cons key value)))) \lev ((0 . "0") (3 . "3") (2 . "2") (1 . "1") (4 . "4"))
+\end{scheme}
+\end{entry}
+
+\begin{entry}{
+\proto{hash-table->list}{ hash}{ procedure}}
+\saut %
+\ide{hash-table->list} returns an ``association list'' built from the
+entries in \var{hash}.  Each entry in \var{hash} will be represented
+as a pair whose \var{car} is the entry's key and whose \var{cdr} is
+its value.
+\begin{note}
+The order of pairs in the resulting list is unspecified.
+\end{note}
+\begin{scheme}
+(let ((h (make-hash-table)))
+  (dotimes (i 5) 
+    (hash-table-put! h i (number->string i)))
+  (hash-table->list h)) \lev ((0 . "0") (3 . "3") (2 . "2") (1 . "1") (4 . "4"))
+\end{scheme}
+\end{entry}
+
+\begin{entry}{
+\proto{hash-table-stats}{ hash}{procedure}}
+\saut %
+\ide{Hash-table-stats} returns a string with overall information about
+\var{hash}, such as the number of entries it contains, the number of
+buckets in its hash array, and the utilization of the buckets.
+\end{entry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.19: Regular Expressions
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsection{Regular expressions}
+
+\label{regexp-type}
+Regular expressions\mainindex{regular expression} are first class objects in
+{\stk}. A regular expression is created by the \ide{string->regexp}
+procedure. Matching a regular expression against a string is simply done by
+applying a previously created regular expression to this string. 
+Regular expressions are implemented using code in the Henry Spencer's
+package, and much of the description of regular expressions below is copied
+from his manual.
+
+\begin{entry}{
+\proto{string->regexp}{ string}{procedure}}
+\saut
+\ide{String->regexp} compiles the \var{string} and returns the
+corresponding regular expression.
+
+\smallskip
+Matching a regular expression against a string is done by applying the result
+of \ide{string->regexp} to this string. This application yields a list of
+integer couples if a matching occurs; it returns {\schfalse} otherwise.  Those
+integers correspond to indexes in the string which match the regular
+expression.
+
+A regular expression is zero or more {\em branches}, separated by ``{\tt |}''.  It
+matches anything that matches one of the branches.
+
+A branch is zero or more {\em pieces}, concatenated.  It matches a match for
+the first, followed by a match for the second, etc.
+
+A piece is an {\em atom} possibly followed by ``{\tt *}'', ``{\tt +}'', or
+``{\tt ?}''. An atom followed by ``{\tt *}'' matches a sequence of 0 or more
+matches of the atom.  An atom followed by ``{\tt +}'' matches a sequence of 1
+or more matches of the atom.  An atom followed by ``{\tt ?}'' matches a match
+of the atom, or the null string.
+
+An atom is a regular expression in parentheses (matching a match for the
+regular expression), a {\em range} (see below), ``{\tt .}''  (matching any
+single character), ``{\tt \verb+^+}'' (matching the null string at the
+beginning of the input string), ``{\tt \verb|$|}'' % $
+(matching the null string
+at the end of the input string), a ``{\tt \verb+\+}'' followed by a single
+character (matching that character), or a single character with no other
+significance (matching that character).
+
+A {\em range} is a sequence of characters enclosed in ``{\tt []}''.  It
+normally matches any single character from the sequence.  If the sequence
+begins with ``{\tt \verb+^+}'', it matches any single character {\em not} from
+the rest of the sequence.  If two characters in the sequence are separated by
+``{\tt -}'', this is shorthand for the full list of ASCII characters between
+them (e.g. ``{\tt [0-9]}'' matches any decimal digit).  To include a literal
+``{\tt ]}'' in the sequence, make it the first character (following a possible
+``{\tt \verb+^+}'').  To include a literal ``{\tt -}'', make it the first or
+last character.
+
+In general there may be more than one way to match a regular expression to an
+input string. Considering only the rules given so far could lead to
+ambiguities. To resolve those ambiguities, the generated regular expression
+chooses among alternatives using the rule ``first then longest''.  In other
+words, it considers the possible matches in order working from left to right
+across the input string and the pattern, and it attempts to match longer
+pieces of the input string before shorter ones. More specifically, the
+following rules apply in decreasing order of priority:
+\begin{enumerate}
+\item If a regular expression could match two different parts of an
+input string then it will match the one that begins earliest.
+
+\item If a regular expression contains ``{\tt |}'' operators then the leftmost
+matching sub-expression is chosen.
+
+\item In ``{\tt *}'', ``{\tt +}'', and ``{\tt ?}'' constructs, longer matches are  chosen
+in preference to shorter ones.
+
+\item In sequences of expression components the components are considered 
+from left to right.
+\end{enumerate}
+
+\begin{scheme}
+(define r1 (string->regexp "abc"))
+(r1 "xyz") \ev \schfalse
+(r1 "12abc345") \ev ((2 5))
+(define r2 (string->regexp "[a-z]+"))
+(r2 "12abc345") \ev ((2 5))
+\end{scheme}
+
+If the regular expression  contains parenthesis, and if there is a match, the
+result returned by the application will contain several couples of integers.
+First couple will be the indexes of the first longest substring which match
+the regular expression. Subsequent couples, will be the indexes of all the
+sub-parts of this regular expression, in sequence.
+
+\begin{scheme}
+(define r3 (string->regexp "(a*)(b*)c"))
+(r3 "abc") \ev ((0 3) (0 1) (1 2))
+(r3 "c")   \ev ((0 1) (0 0) (0 0))
+((string->regexp "([a-z]+),([a-z]+)") "XXabcd,eXX")
+           \ev ((2 8) (2 6) (7 8))
+
+\end{scheme}
+\end{entry}
+
+
+
+\begin{entry}{
+\proto{regexp?}{ obj}{procedure}}
+\saut
+Returns \schtrue{} if \var{obj} is a regular expression created by
+\ide{string->regexp}; otherwise returns {\schfalse}.
+
+\begin{scheme}
+(regexp? (string->regexp "[a-zA-Z][a-zA-Z0-9]*")) 
+                    \ev  \schtrue
+\end{scheme}
+\end{entry}
+
+\begin{entry}{
+\proto{regexp-replace}{ pattern string substitution}{procedure}
+\proto{regexp-replace-all}{ pattern string substitution}{procedure}}
+\saut
+\ide{Regexp-replace}  matches the regular expression \var{pattern} against
+\var{string}. If there is a match, the  portion of \var{string} which match 
+\var{pattern} is replaced by the \var{substitution} string. If there is no match, 
+\ide{regexp-replace} returns \var{string} unmodified. Note that the given 
+\var{pattern} could be here either a string or a regular expression.
+\smallskip
+If \var{pattern} contains strings of the form ``{\tt \verb+\+n}'',
+where {\em n} is a digit between 1 and 9, then it is replaced in the
+substitution with the portion of string that matched the {\em n}-th
+parenthesized subexpression of {\em pattern}. If {\em n} is equal to
+0, then it is replaced in \var{substitution} with the portion of
+\var{string} that matched \var{pattern}.
+\begin{scheme}
+(regexp-replace "a*b" "aaabbcccc" "X")
+                   \ev "Xbcccc"
+(regexp-replace (string->regexp "a*b") "aaabbcccc" "X")
+                   \ev "Xbcccc"
+(regexp-replace "(a*)b" "aaabbcccc" "X\verb+\\+1Y")
+                   \ev "XaaaYbcccc"
+(regexp-replace "(a*)b" "aaabbcccc" "X\verb+\\+0Y")
+                   \ev "XaaabYbcccc"
+(regexp-replace "([a-z]*) ([a-z]*)" "john brown" "\verb+\\2 \\1+")
+                   \ev "brown john"
+\end{scheme}
+
+\ide{Regexp-replace} replaces the first occurence of \var{pattern} in
+\var{string}. To replace {\em all} the occurences of the {\em pattern}, use
+\ide{regexp-replace-all}
+
+\begin{scheme}
+(regexp-replace "a*b" "aaabbcccc" "X")
+                   \ev "Xbcccc"
+(regexp-replace-all "a*b" "aaabbcccc" "X")
+                   \ev "XXcccc"
+\end{scheme}
+\end{entry}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.20:  Pattern matching
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Pattern matching}
+
+Pattern matching\mainindex{Pattern matching} is a key feature of most
+modern functional programming languages since it allows clean and
+secure code to be written. Internally, ``pattern-matching forms''
+should be translated (compiled) into cascades of ``elementary tests''
+where code is made as efficient as possible, avoiding redundant tests;
+the {\stk} ``pattern matching compiler'' provides this\footnote{The
+  ``pattern matching compiler'' has been written by Jean-Marie Geffroy
+  and is part of the Manuel Serrano's Bigloo compiler\cite{Serrano-97}
+  since several years. The code (and documentation) included in {\stk}
+  has been stolen from the Bigloo package v1.9 (the only difference
+  between both package is the pattern matching of structures whisch is
+  absent in {\stk}).}.  The technique used is described in details
+in~\cite{Queinnec-Geffroy92}, and the code generated can be considered
+optimal due to the way this ``pattern compiler'' was obtained.
+
+The ``pattern language'' allows the expression of a wide variety of patterns,
+including:
+
+\begin{itemize}
+
+\item Non-linear patterns: pattern variables can appear more than
+once, allowing comparison of subparts of the datum (through {\tt eq?})
+
+\item Recursive patterns on lists: for example, checking that the
+datum is a list of zero or more {\tt a}s followed by zero or more {\tt
+b}s.
+
+\item Pattern matching on lists as well as on vectors.
+
+\end{itemize}
+
+
+\subsubsection*{Pattern Matching Facilities}
+
+Only two special forms are provided for this: {\tt match-case} and {\tt
+match-lambda} and these also exist, for example, in Andrew Wright and
+Bruce Duba's~\cite{Wright-Duba-93} pattern matching package.
+
+\begin{entry}{
+\proto{match-case}{ \hyper{key} \hyperi{clause} \hyperii{clause}\dotsfoo} {\exprtype}}
+\saut
+
+In this form, \hyper{key} may be any expression and each
+\hyper{clause} has the form
+\begin{scheme}
+($<$pat$>$ $<$expression$_{1}$$>$ $<$expression$_{2}$$>$ \ldots)  
+\end{scheme}
+
+A {\tt match-case} expression is evaluated as
+follows. $<$key$>$ is evaluated and the result is compared with each
+successive patterns. If the pattern in some $<$clause$>$ yields a match, then
+the expressions in that $<$clause$>$ are evaluated from left to right in an
+environment where the pattern variables are bound to the corresponding
+subparts of the datum, and the result of the last expression in that
+$<$clause$>$ is returned as the result of the {\tt match-case} expression.
+If no $<$pat$>$ in any $<$clause$>$ matches the datum, then, if there is an
+{\tt else} clause, its expressions are evaluated and the result of the last
+is the result of the whole {\tt match-case} expression; otherwise the result
+of the {\tt match-case} expression is unspecified.
+
+The equality predicate used is {\tt eq?}.
+
+\begin{scheme}
+(match-case '(a b a)
+  ((?x ?x) 'foo)
+  ((?x ?- ?x) 'bar))  \lev bar 
+\end{scheme}
+\end{entry}
+
+\begin{entry}{
+\proto{match-lambda}{ \hyperi{clause} \hyperii{clause}\dotsfoo} {\exprtype}}
+\saut
+
+The form \ide{match-lambda}expands into a lambda-expression expecting
+an argument which, once applied to an expression, behaves exactly like
+a {\tt match-case} expression.
+
+\begin{scheme}
+((match-lambda 
+    ((?x ?x) 'foo)
+    ((?x ?- ?x) 'bar)) 'bar) \lev bar 
+\end{scheme}
+\end{entry}
+
+
+%*---------------------------------------------------------------------*/
+\subsubsection*{The pattern language}
+
+The syntax is presented in Table~\ref{PatternLanguage}. It is
+described below in the same way (and nearly in the same words) as in
+\cite{Wright-Duba-93}.
+
+\begin{table} % [hptb]
+
+%\_\hrulefill\_
+
+\begin{small}
+%\begin{minipage}[t]{\textwidth}
+
+\begin{tabular}{ll}
+
+{\em $<$pattern$>$ $\longrightarrow$} & {\em Matches:} \\
+
+$<$atom$>$ $\|$ {\tt (kwote { }}$<$atom$>${\tt )} 
+        & any expression {\tt eq?} to $<$atom$>$\\
+$\|$ {\tt (and} $<$pat$_1>$ \ldots $<$pat$_n>${\tt )} 
+        & if all of $<$pat$_i>$ match \\
+$\|$ {\tt (or} $<$pat$>$ \ldots $<$pat$_n>${\tt )} 
+        & if any of $<$pat$_1>$ through $<$pat$_n> $match \\
+$\|$ {\tt (not} $<$pat$>${\tt )} 
+        & if $<$pat$>$ doesn't match \\
+$\|$ {\tt (?} $<$predicate$>${\tt )} 
+        & if  $<$predicate$>$ is true\\
+$\|$ {\tt ($<$pat$_1>$ \ldots 
+        \footnote{Here, \ldots is a meta-character denoting a finite repetition of patterns. }
+$<$pat$_n>$)}  
+    & a list of $n$ elements \\
+$\|$ $<$pat$>$ {\tt \underline{\ldots}}
+        \footnote{Here, {\tt \underline{\ldots}} means the special keyword "\ldots". }
+     & a (possibly empty) repetition of $<$pat$>$ in a list.  \\
+$\|$ {\tt \#($<$pat$>$ \ldots $<$pat$_n>$)}  
+     & a vector of n elements \\
+$\|$ {\tt ?}$<$identifier$>$ & anything, and binds $identifier$ as a variable \\
+$\|$ \verb#?-# & anything \\
+$\|$ \verb#??-# & any (possibly empty) repetition of anything in a list \\
+$\|$ \verb#???-# & any end of list \\
+
+\end{tabular}
+%\end{minipage}
+
+\end{small}
+
+\caption{Pattern Syntax}
+\label{PatternLanguage}
+\_\hrulefill\_
+\end{table}
+
+\begin{note}
+  {\tt and, or, not, check} and {\tt kwote} must be quoted in order to
+  be treated as literals. This is the only justification for having
+  the {\tt kwote} pattern since, by convention, any atom which is not
+  a keyword is quoted.
+\end{note}
+
+\paragraph{Explanations through examples}
+
+\begin{itemize}
+
+
+\item {\tt ?-} matches any s-expr
+
+\item {\tt a} matches the atom {\tt 'a}.
+
+\item {\tt ?a} matches any expression, and binds the variable {\tt a} to
+this expression.
+
+\item {\tt (? integer?)} matches any integer
+
+\item {\tt (a (a b))} matches the only list {\tt '(a (a b))}.
+
+\item {\tt ???-} can only appear at the end of a list, and always succeeds.
+For instance, {\tt (a ???-)} is equivalent to {\tt (a . ?-)}.
+
+\item when occurring in a list, {\tt ??-} matches any sequence of anything:
+{\tt (a ??- b)} matches any list whose {\tt car} is {\tt a} and last
+{\tt car} is {\tt b}. 
+
+\item \verb#(a ...)# matches any list of {\tt a}'s, possibly empty.
+
+\item {\tt (?x ?x)} matches any list of length 2 whose {\tt car} is {\em eq} to its {\tt cadr}
+
+\item {\tt ((and (not a) ?x) ?x)} matches any list of length 2 whose {\tt
+car} is not {\em eq} to {\tt 'a} but is {\em eq} to its {\tt cadr}
+
+\item {\tt \#(?- ?- ???-)} matches any vector whose length is at least 2.
+\end{itemize}
+
+\begin{note}
+{\tt ??-} and \verb#...# patterns can not appear
+inside a vector, where you should use ???-: For example, {\tt \#(a
+??- b)} or {\tt \#(a...)} are invalid patterns, whereas {\tt \#(a
+???-)} is valid and matches any vector whose first element is the atom
+{\tt a}.
+\end{note}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%
+%%%% Section 6.21:  Processes
+%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Processes}
+
+\label{process-type}
+{\stk} provides access to Unix processes as first class objects. Basically,
+a process contains four informations: the standard Unix process
+identification (aka PID\mainindex{PID}) and the three standard files
+of the process.
+
+\begin{entry}{
+\proto{run-process}{ command \vri{p} \vrii{p} \vriii{p} \dotsfoo}{procedure}}
+\saut
+\ide{run-process} creates a new process and run the executable
+specified in \var{command}. The \var{p} correspond to the command line
+arguments. The following values of \var{p} have a special meaning:
+\begin{itemize}
+\item {\tt :input} permits to redirect the standard input file of the
+process. Redirection can come from a file or from a pipe. To redirect
+the standard input from a file, the name of this file must be
+specified after {\tt :input}. Use the special keyword {\tt :pipe} to
+redirect the standard input from a pipe. 
+
+\item {\tt :output} permits to redirect the standard output file of the
+process. Redirection can go to a file or to a pipe. To redirect
+the standard output to a file, the name of this file must be
+specified after {\tt :output}. Use the special keyword {\tt :pipe} to
+redirect the standard output to a pipe.
+
+\item {\tt :error} permits to redirect the standard error file of the
+process. Redirection can go to a file or to a pipe. To redirect
+the standard error to a file, the name of this file must be
+specified after {\tt :error}. Use the special keyword {\tt :pipe} to
+redirect the standard error to a pipe.
+
+\item {\tt :wait} must be followed by a boolean value. This value
+specifies if the process must be run asynchronously or not. By
+default, the process is run asynchronously (i.e. {\tt :wait} is
+\schfalse).
+
+\item {\tt :host} must be followed by a string. This string represents
+the name of the machine on which the command must be executed. This
+option uses the external command {\tt rsh}. The shell variable {\tt
+PATH} must be correctly set for accessing it without specifying its
+abolute path.
+
+\item {\tt :fork} must be followed by a boolean value. This value
+  specifies if a \emph{fork} system call must be done before running
+  the process. If the process is run without \emph{fork} the Scheme
+  program is lost. This feature mimics the ``exec'' primitive of the
+  Unix shells. By default, the process a fork is executed before
+  running the process (i.e. {\tt :fork} is \schtrue). This options
+  works on Unix implementations only.
+\end{itemize}
+The following example launches a process which execute the
+Unix command {\tt ls} with the arguments {\tt -l} and {\tt
+/bin}. The lines printed by this command are stored in the file {\tt /tmp/X}
+\begin{scheme}
+(run-process "ls" "-l" "/bin" :output "/tmp/X" :wait \schfalse)
+\end{scheme}
+\end{entry}
+
+\begin{entry}{
+\proto{process?}{ process}{procedure}}
+\saut
+Returns \schtrue{} if \var{process} is a process, otherwise returns
+{\schfalse}.
+\end{entry}
+
+\begin{entry}{
+\proto{process-alive?}{ process}{procedure}}
+\saut
+Returns \schtrue{} if \var{process} if the process is currently running, 
+otherwise returns {\schfalse}.
+\end{entry}
+
+
+\begin{entry}{
+\proto{process-pid}{ process}{procedure}}
+\saut
+Returns an integer value which represents the Unix identification 
+(PID\mainindex{PID}) of \var{process}.
+\end{entry}
+
+\begin{entry}{
+\proto{process-input}{ process}{procedure}
+\proto{process-output}{ process}{procedure}
+\proto{process-error}{ process}{procedure}}
+\saut
+Returns the file port associated to the standard input, output or error
+of \var{process}, if it is redirected in (or to) a pipe; otherwise
+returns \schfalse. Note that the returned port is opened for reading
+when calling {\tt process-output} or {\tt process-error}; it is opened
+for writing when calling {\tt process-input}.
+\end{entry}
+
+\begin{entry}{
+\proto{process-wait}{ process}{procedure}}
+\saut
+\ide{Process-wait} stops the current process until
+\var{process} completion. \ide{Process-wait} returns {\schfalse}
+when \var{process} is already terminated; it returns {\schtrue} otherwise.
+\end{entry}
+
+\begin{entry}{
+\proto{process-exit-status}{ process}{procedure}}
+\saut
+\ide{Process-exit-status} returns the exit status of \var{process} if
+it has finished its execution; returns {\schfalse} otherwise.
+\end{entry}
+
+\begin{entry}{
+\proto{process-send-signal}{ process n}{procedure}}
+\saut
+Send the signal whose integer value is \var{n} to \var{process}. Value
+of \var{n} is system dependant. Use the defined signal constants to
+make your program indpendant of the running system (see
+\ref{signals}).  The result of \var{process-send-signal} is undefined.
+\end{entry}
+
+\begin{entry}{
+\proto{process-kill}{ process}{procedure}}
+\saut
+\ide{Process-kill} brutally kills \var{process}. The result of
+\ide{process-kill}
+is undefined. This procedure is equivalent to
+\begin{scheme}
+(process-send-signal process |SIGTERM|)
+\end{scheme}
+\end{entry}
+
+
+\begin{entry}{
+\proto{process-stop}{ process}{procedure}
+\proto{process-continue}{ process}{procedure}}
+\saut
+Those procedures are only available on systems which support job
+control. \var{Process-stop} stops the execution of
+\var{process} and  \var{process-continue} resumes its execution. They
+are equivalent to 
+\begin{scheme}
+(process-send-signal process |SIGSTOP|)
+(process-send-signal process |SIGCONT|)
+\end{scheme}
+\end{entry}
+
+
+\begin{entry}{
+\proto{process-list}{}{procedure}}
+\saut
+\ide{process-list} returns the  list of processes which are currently
+running (i.e. alive).
+\end{entry}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End: 

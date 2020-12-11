@@ -1,0 +1,118 @@
+%
+% STk Reference manual (Appendix: Modules)
+%
+%           Author: Erick Gallesio [eg@unice.fr]
+%    Creation date:  6-Apr-1998 11:19
+% Last file update:  8-Apr-1998 10:10
+%
+
+
+This appendix shows some usages of the {\stk} modules. Most of the
+examples which are exhibited here are derived from the Tung and Dybvig paper
+\cite{Tung-Dybvig-96}.
+
+
+\subsection*{Interactive Redefinition}
+
+Consider first the definitions,
+\begin{scheme}
+(define-module A
+  (export square)
+  (define square 
+    (lambda (x) (+ x x))))
+
+(define-module B
+  (import A)
+  (define distance 
+    (lambda (x y)
+      (sqrt (+ (square x) (square y))))))
+\end{scheme}
+Obviously, the \texttt{square} function exported from \texttt{A} is
+incorrect, as we can see in its usage below:
+\begin{scheme}
+(with-module B (round (distance 3 4))) \lev 4.0  
+\end{scheme}
+
+The function can be redefined (\textit{corrected}) by the following expression:
+\begin{scheme}
+(with-module A 
+  (set! square 
+        (lambda (x) (* x x))))  
+\end{scheme}
+
+And now,
+\begin{scheme}
+  (with-module B (round (distance 3 4))) \lev 5
+\end{scheme}
+
+which is correct.
+
+\subsection*{Lexical principle}
+
+This example reuses the modules \texttt{A} and \texttt{B} of previous
+section and adds a \texttt{Compare} module that exports the
+\texttt{less-than-4?} predicates, which states if the distance from a
+point to the origin is less than 4.
+
+\begin{scheme}
+(define-module A
+  (export square)
+  (define square (lambda (x) (* x x))))
+
+(define-module B
+  (import A)
+  (export distance)
+
+  (define distance 
+    (lambda (x y) (sqrt (+ (square x) (square y))))))
+
+(define-module Compare 
+  (import B)
+  (define less-than-4? (lambda (x y) (< (distance x y) 4)))
+  (define square       (lambda (x)   (+ x x))))
+\end{scheme}
+
+Consider now the call,
+\begin{scheme}
+(with-module compare (less-than-4? 3 4)) \lev \schfalse
+\end{scheme}
+
+The call to \texttt{distance} done from \texttt{less-than-4?}
+indirectly calls the \texttt{square} procedure of module \texttt{A} rather than
+the one defined locally in module \texttt{Compare}.
+
+
+\subsection*{Mutually Referential Modules}
+This example uses two mutually referential modules taht import and
+export to each other to implement mutually recursive even? and odd?
+procedures
+
+\begin{scheme}
+(define-module Odd)   ;; Forward declaration
+
+(define-module Even 
+  (import Odd)
+  (export even?)
+  (define even? (lambda (x) (if (zero? x) \schtrue (odd? (- x 1))))))
+
+(define-module Odd 
+  (import Even)
+  (export odd?)
+  (define odd? (lambda (x) (if (zero? x) \schfalse (even? (- x 1))))))
+\end{scheme}
+
+Hereafter are some usages of theses procedures:
+\begin{scheme}
+(with-module Odd (odd? 3))  \lev \schtrue
+(with-module Odd (odd? 10)) \lev \schfalse
+
+(with-module Even (even? 3)) \lev \schfalse
+(with-module Even (even? 10)) \lev \schtrue
+\end{scheme}
+
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master:"manual" 
+%%% End:
+

@@ -1,0 +1,20 @@
+  Compiling STk for OS X
+  ----------------------
+ 
+  ./brg/build /Applications/STk
+ 
+  # *** Be sure to change the version dependent info below ***
+ 
+  # create a 20MB disk image
+  
+  hdiutil create -megabytes 20 STkMacOSX.dmg -fs HFS+ -volname STk4.0.1-ucb1.13
+ 
+  # Mount the disk image (double click on the dmg file)
+ 
+  # Copy the files to it, including the help file
+ 
+  # Eject the disk image (drag the opened disk to the wastebasket)
+ 
+  # compress it and make it read only
+  
+   hdiutil convert -format UDZO myimage.dmg -o mycompimage.dmg

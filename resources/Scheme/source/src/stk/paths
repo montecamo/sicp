@@ -1,0 +1,9 @@
+stkdir		= $(prefix)/lib/stk
+libdir 		= $(stkdir)/$(VERSION)
+execdir		= $(prefix)/bin/arch/$(os)/$(machine)
+confdir		= $(execdir)/Config
+ardir		= $(execdir)/Libs
+incdir		= $(prefix)/include
+mandir 		= $(prefix)/man
+bindir 		= $(prefix)/bin
+sharedir	= $(prefix)/share/stk

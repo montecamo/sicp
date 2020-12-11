@@ -1,0 +1,81 @@
+;; -*-Mode: Scheme;-*-
+;;
+;; Copyright (C) 1995 Josh MacDonald <jmacd@po.EECS.Berkeley.EDU>
+;;
+;; Permission to use, copy, and/or distribute this software and its
+;; documentation for any purpose and without fee is hereby granted, provided
+;; that both the above copyright notice and this permission notice appear in
+;; all copies and derived works.  Fees for distribution or use of this
+;; software or derived works may only be charged with express written
+;; permission of the copyright holder.
+;; This software is provided ``as is'' without express or implied warranty.
+;;
+;; $Id: common-widget.stk,v 1.1 2003/12/19 22:57:37 willchu Exp $
+;; $ProjectHeader: stk ucb2.29 Thu, 11 Sep 2003 14:07:59 -0700 hilfingr $
+;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                          COMMON WIDGETS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; The purpose of this class is to facilitate a better method of sending
+;; anonymous procedures to Tk bindings.  Since STk does not directly
+;; support this, as guile does, any widget which wishes to use tk-hook
+;; must add <common> as a parent class. (it must also be higher in
+;; precedence than any Tk-ish parent classes, or else the Tk bind
+;; will prevail)
+
+;; The idea is to turn the statement below into something where
+;; references to local variables are passed by address automatically
+;; and a pointer to each will be saved so it is not garbage collected
+
+;; (bind self "<Button-3>"
+;;       (tk-hook ((self self)
+;; 		   (ht (get-keyword :ht args)))
+;; 	   (delete-object self ht)))
+
+(define-class <common> ()
+  ((protected :initform '())))
+
+(define-method gc-protect((self <common>) obj)
+  (slot-prepend! self 'protected obj))
+
+(define-method destroy((self <common>))
+  (slot-set! self 'protected '())
+  (next-method))
+
+(define (replace-in-body symbol-alist body)
+  (define (replace-in l)
+    (map
+     (lambda (x)
+       (if (pair? x)
+	   (replace-in x)
+	   (let ((a (assoc x symbol-alist)))
+	     (if a (let ((it (cdr a)))
+		     (cond ((pair? it)
+			    (list 'quote (address-of it)))
+			   ((symbol? it) (list 'quote it))
+			   ((number? it) it)
+			   (else (address-of it))))
+		 x))))
+     l))
+  (replace-in body))
+
+(define-method bind((self <common>) event-name binding)
+  (if (vector? binding)
+      (let ((bindings (vector-ref binding 0)))
+	(map (lambda (x) (gc-protect self x)) bindings)
+	((slot-ref self 'Id) 'bind (slot-ref self 'Cid)
+			     event-name (vector-ref binding 1)))
+      ((slot-ref self 'Id) 'bind (slot-ref self 'Cid)
+			   event-name binding)))
+
+(define-macro (tk-hook protects . body)
+  `(vector
+    ,(cons 'list (map cadr protects))
+    (cons 'begin (replace-in-body
+		  (map cons ',(map car protects)
+		       ,(cons 'list (map cadr protects)))
+		  ',body))))
+
+(provide "common-widget")

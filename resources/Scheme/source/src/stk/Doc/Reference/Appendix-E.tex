@@ -1,0 +1,172 @@
+%
+% STk Reference manual (Appendix: Changes)
+%
+%           Author: Erick Gallesio [eg@unice.fr]
+%    Creation date: 21-Dec-1997 20:09
+% Last file update: 27-Sep-1999 15:45 (eg)
+%
+
+\section*{Introduction}
+
+This appendix lists the main differences\footnote{ Only the
+  differences which affect the language or new ports are reported
+  here.  In particular, internal changes, packages written in Scheme,
+  STklos or performance enhancements are not discussed here.} among
+the various recent versions of STk.  Differences with older versions
+as well as implementation changes are described in the CHANGES file
+located in the main directory of the STk distribution.
+
+\section*{Release 4.0.1}
+\small{\emph{Release date: 09/27/99}}
+Mains changes/modifications since 4.0.1:
+\begin{itemize}
+\item Integration of SFI-9
+\end{itemize}
+
+\section*{Release 4.0.0}
+\small{\emph{Release date: 09/03/99}}
+Mains changes/modifications since 3.99.4:
+\begin{itemize}
+\item define-syntax
+\item Integration of SRFI-{0,2,6,8}
+\end{itemize}
+
+\section*{Release 3.99.4}
+\small{\emph{Release date: 02/02/99}}
+Mains changes/modifications since 3.99.3:
+\begin{itemize}
+\item  Virtuals ports
+\end{itemize}
+
+\section*{Release 3.99.3}
+\small{\emph{Release date: 09/30/98}}
+Mains changes/modifications since 3.99.2:
+\begin{itemize}
+\item  Tk version is 8.0.3
+  
+\item Base64 Encoding/Decoding extension
+  
+\item Locale extension to treat strings and character using locale
+  information
+\end{itemize}
+
+\section*{Release 3.99.2}
+\small{\emph{Release date: 04/27/98}}
+Mainly a bugs correcting release.
+
+New function: \texttt{write*} which handle circular structures. \texttt{Format}
+accepts now the special tag ``\verb+~W+'' for circular structures writing.
+
+\section*{Release 3.99.1}
+\small{\emph{Release date: 04/27/98}}
+Mainly a bugs correcting release
+
+\section*{Release 3.99.0}
+\small{\emph{Release date: 04/10/98}}
+
+Changes can be classified in three categories:
+\begin{itemize}
+\item About Scheme
+  \begin{itemize}
+  \item A module system has been added
+    
+  \item Integration of the Bigloo \ide{match-case} and
+    \ide{match-lambda} primitives. Furthermore, the file \emph{bigloo.stk}
+    provides some compatibility between {\stk} and bigloo modules.
+
+  \item A simple Foreign Function Interface has been added. 
+    
+  \item integrates the {\rfive} \ide{values} and \ide{call-with-values}
+
+  \item multi-line comments have been added.
+    
+  \item new file primitives: \texttt{remove-file}, \texttt{rename-file} and 
+    \texttt{temporary-file-name}.
+    
+  \item new list primitives: \texttt{append!}, \texttt{last-pair},
+    \texttt{remq}, \texttt{remv} and \texttt{remove}.
+
+  \item \texttt{load}, \texttt{try-load} and \texttt{autoload?} can nw
+    be called with a module as second parameter. If this second parameter is
+    present, the loading is done in the environment of the given module.
+  \end{itemize}
+
+\item About Tk
+  \begin{itemize}
+  \item Integration of the Tk8.0 toolkit
+  \item Buttons, Checkbuttons and Radiobuttons can use a
+    \texttt{:variable} and \texttt{:textvariable} in a given
+    environment. This environment is given with the new \texttt{:environment}
+    option.
+  \end{itemize}
+
+\item About STklos
+  \begin{itemize}
+  \item The MOP of {\stklos} is now very similar to the CLOS's MOP. In
+    particular generic function has been added for controlling slot
+    accesses, as well as numerous introspection functions.
+  \item  When a class is redefined, the instances and methods which uses it
+    are redefined accordingly, as in CLOS (i.e. if anew slot is added in a
+    class, all its -- direct or indirect -- instances will have the new
+    slot added dynamically. 
+  \end{itemize}
+\end{itemize}
+
+
+\section*{Release 3.1.1}
+
+\small{\emph{Release date: 09/26/96}}
+
+This release is a bug correction release. It corrects a lot of bugs.
+A lot of these bugs prevent to install it on some architectures.
+
+
+\section*{Release 3.1}
+
+\small{\emph{Release date: 07/24/96}}
+
+\begin{itemize}
+\item Version of Tk is now at Tk4.1 level.
+\item STk has been ported on Windows 95 and Windows NT. 
+\item Ports can have a handler which is executed when port becomes
+  readable or writable (see primitives \texttt{when-port-readable} and
+  \texttt{when-port-writable}.
+\item Sockets in server mode allow multiple concurrent connection.
+\item \stklos{}: Two new methods: \texttt{object-eqv?} and
+  \texttt{object-equal?} which are called when applying \texttt{eqv?} 
+  or \texttt{equal?} to instances.
+\item New primitive:\texttt{setenv!}
+  
+\end{itemize}
+\section*{Release 3.0} 
+
+\small{\emph{Release date: 01/22/96}}
+\begin{itemize}
+\item Version of Tk is at Tk4.0p2 level.
+\item Closures are fully supported by Tk. That means that a callback can be 
+  now a  Scheme closure with its environment. GC problems with closures
+  and usage of the dirty \texttt{address-of} are definitively gone.
+\item Strings can contain null charters (printing of strings is more
+  friendly in write mode).
+\item Signals can  be redirected to Scheme closures. The end of a GC 
+ is seen as a signal.
+\item Traces on variables are changed (and re-work now): the
+  associated trace must be a thunk.
+\item  New options for some widgets to be more friendly with Scheme world
+\item \stklos{}: if a method M is defined and if it is already bound
+  to a procedure, the old procedure is called when no method is
+  applicable.
+  \begin{scheme}
+(define-method car ((x <integer>)) (- x 1))
+(car 10)           \lev 9
+(car (cons 'a 'b)) \lev a
+  \end{scheme}
+\item Small change in the STklos hierarchy. \texttt{<widget>} is now a
+  subclass of \texttt{<procedure>} and its meta class is 
+  \texttt{<procedure-metaclass>}.
+\end{itemize}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End: 

@@ -1,0 +1,924 @@
+\input texinfo      @c -*-texinfo-*-
+@c Copyright 2003
+@c Paul N. Hilfinger
+@c
+@setfilename stkdb.info
+@c
+@set STKDB STKDB
+@set PROGVERSION 1.0
+@set STK @sc{STk}
+@settitle Debugging with @value{STKDB}
+@setchapternewpage odd
+@c %**end of header
+
+@iftex
+@c @smallbook
+@c @cropmarks
+@end iftex
+
+@finalout
+@syncodeindex ky cp
+@syncodeindex vr cp
+@syncodeindex fn cp
+
+@c !!set manual's edition---not the same as the program's version!
+@set EDITION First
+
+@c !!set manual's revision date
+@set DATE July 2003
+
+@c THIS MANUAL REQUIRES TEXINFO 4.0 OR LATER.
+
+@macro menuitem {text}
+``\text\''
+@end macro
+
+@c This is a dir.info fragment to support semi-automated addition of
+@c manuals to an info tree.
+@dircategory Programming & development tools.
+@direntry
+* Stkdb: (stkdb).                     An @value{STK} debugger.
+@end direntry
+
+@ifinfo
+This file documents the @value{STK} debugger @value{STKDB}.
+
+
+This is the @value{EDITION} Edition, @value{DATE},
+of @cite{Debugging with @value{STKDB}: the @value{STK} Source-Level Debugger}
+
+Copyright (C) 2003 Paul N. Hilfinger
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``Free Software'' and ``Free Software Needs
+Free Documentation'', with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.
+
+(a) The Free Software Foundation's Back-Cover Text is: ``You have
+freedom to copy and modify this GNU Manual, like GNU software.  Copies
+published by the Free Software Foundation raise funds for GNU
+development.''
+@end ifinfo
+
+@titlepage
+@title Debugging with @value{STKDB}
+@subtitle The @value{STK} Source-Level Debugger
+@sp 1
+@subtitle @value{EDITION} Edition, for @value{STKDB} version @value{PROGVERSION}
+@subtitle @value{DATE}
+@author Paul N. Hilfinger
+@page
+@tex
+{\parskip=0pt
+\hfill (Send bugs and comments on @value{STKDB} to Hilfinger\@cs.berkeley.edu.)\par
+\hfill {\it Debugging with @value{STKDB}}\par
+\hfill \TeX{}info \texinfoversion\par
+}
+@end tex
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2003 Paul N. Hilfinger
+@sp 2
+387 Soda Hall, M.C. 1776 @*
+University of California @*
+Berkeley, CA 94720-1776 @*
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``Free Software'' and ``Free Software Needs
+Free Documentation'', with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.
+
+(a) The Free Software Foundation's Back-Cover Text is: ``You have
+freedom to copy and modify this GNU Manual, like GNU software.  Copies
+published by the Free Software Foundation raise funds for GNU
+development.''
+@end titlepage
+@page
+
+@ifnottex
+@node Top, Summary, (dir), (dir)
+
+@top Debugging with @value{STKDB}
+
+This file describes @value{STKDB}, the @value{STK} symbolic debugger.
+
+This is the @value{EDITION} Edition, @value{DATE}, for @value{STKDB} Version
+@value{PROGVERSION}.
+
+Copyright (C) 2003 Paul N. Hilfinger
+
+@menu
+* Summary::                     Summary of @value{STKDB}
+* Setting Up::                  Beginning a @value{STKDB} session
+* Preparing Files::             Preparing files to be debugged
+* Activating::                  Activating the debugger
+* Stopping::                    Stopping and continuing
+* Examining::                   Examining data in a stopped program
+
+* Copying::			GNU General Public License says
+                                how you can copy and share @value{STKDB}
+* GNU Free Documentation License::  The license for this documentation
+* Index::                       Index
+@end menu
+
+@end ifnottex
+
+@node Summary
+@unnumbered Summary of @value{STKDB}
+
+Generally speaking, a ``debugger'' is a program that allows its users to
+run, control, and observe other programs in action for the purpose of
+diagnosing problems in these programs.  @value{STKDB} does this for
+Scheme programs written for the @value{STK} system. It is deliberately 
+designed to resemble the GNU debugger, GDB, which provides support for 
+many languages, including Ada, C, C++, Java, Fortran, and Modula~2.
+
+@value{STKDB} provides a number of features that are common to 
+most modern debuggers for other languages as well. You can:
+
+@itemize @bullet
+@item 
+Add (invisible) instrumentation to functions you have written so
+that you can track them.
+
+@item 
+Place @dfn{breakpoints} on expressions of your program, 
+which cause @value{STKDB} to stop the program when it evaluates 
+those expressions.
+
+@item 
+@dfn{Step} a program, evaluating one subexpression at a time and
+stopping after each one.
+
+@item 
+Find out where a program has stopped, whether due to a breakpoint,
+an error, or an interrupt (i.e., a @kbd{C-c}).
+
+@item 
+Find out how the program arrived at a point where it has 
+stopped---that is, to find out what function call started the execution
+of the function body where the program stopped, and in turn how
+that function call came to be evaluatued.
+
+@item 
+Examine the variables of a stopped program---in fact, you can evaluate
+any Scheme expression at the point where the program stopped.
+@end itemize
+
+@noindent
+
+@value{STKDB} is itself a Scheme program---a collection of function and
+variable definitions---that runs on top of @value{STK}. It is loaded
+into @value{STK} like any other Scheme program.  Once loaded, it
+provides a function, @code{stkdb:debug-file}, which instruments and
+loads other files full of Scheme definitions.  Ordinarily, the functions
+loaded in this way behave like ordinary Scheme functions.  However,
+@value{STKDB} also provides a function, @code{stkdb}, that starts a
+special read-evaluate-print loop (in other words, it acts as
+@value{STK} does normally, reading what you type, evaluating it, and
+printing the result).  This loop understands commands for performing
+special debugging functions, such as setting breakpoints, as well as the
+usual task of evaluating expressions.
+
+While you can use this simple command-line interface to talk to @value{STKDB}, 
+you will probably find it much more convenient to use Emacs, which has 
+special Scheme debugging support that is integrated into the Scheme 
+execution support already provided. Emacs provides
+
+@itemize @bullet 
+@item  
+Menu-based access to most @value{STKDB} commands.
+
+@item 
+Fast key bindings (``accelerators'') for frequent operations.  
+
+@item 
+Simplified setting of breakpoints.
+
+@item 
+Text highlighting to indicate points in your program where execution
+has stopped.
+
+@item
+And, of course, access to this documentation.
+@end itemize
+
+@noindent 
+In the discussion that follows, we will show both the text-based and 
+Emacs-based commands.
+
+@node Setting Up
+@chapter Beginning a @value{STKDB} Session
+
+@value{STKDB} uses the @code{slib} Scheme library; your @value{STK} system
+should first be configured to ``know'' the location of 
+the @code{slib} library.  @value{STKDB} can then load the library, if necessary.
+Once @value{STK} is properly configured, you can load @value{STKDB} into your
+@value{STK} session with the commands
+
+@example
+(load "@var{DIR}/stkdb.scm")
+(import stk-debugger)
+@end example
+
+@noindent
+where @var{DIR} is the directory in which @code{stkdb.scm} is installed.
+
+This is all much simpler in Emacs.  Assuming you have properly installed
+the @value{STKDB} Elisp file, @code{stkdb.el}, you need only issue the 
+command @kbd{M-x load-file @key{RET} @var{DIR}/stkdb.el @key{RET}}, or 
+if @var{DIR} is on your Emacs load-path, then
+@kbd{M-x load-library @key{RET} stkdb @key{RET}} will also work.  Once you've 
+done this, Emacs will set up a buffer running Scheme and
+with @value{STKDB} properly loaded as soon as you use the @menuitem{Debug File}
+menu
+command
+(or @kbd{C-c d}) in a Scheme source buffer (@pxref{Preparing Files}).
+
+Normally, you won't even bother to issue these @code{load} 
+commands by hand, but will instead include the line 
+
+@example
+(load "stkdb")
+@end example
+
+@noindent
+in your @code{.emacs} file.
+
+@node Preparing Files
+@chapter Preparing Files for Debugging
+
+In order to control the evaluation of a set of functions
+you want to examine, @value{STKDB} needs to @dfn{instrument} them---that is, to
+add Scheme code to these functions before they are loaded.  The instrumentation
+is normally invisible to you (there are @value{STK} functions that allow
+you to examine the internal definition of a function, but you'll usually just
+go back to the source file for that information instead, 
+and @value{STKDB} doesn't need to modify any source files).
+
+@defun stkdb:debug-file file
+
+@code{stkdb:debug-file} instruments and loads 
+the Scheme source file @var{file}.  The @var{file} argument is a string.
+Only functions that have been loaded in this fashion can be controlled 
+by @value{STKDB}. 
+
+@example
+(stkdb:debug-file "problem1.scm")
+@end example
+@end defun
+
+The easy way to issue this command is from Emacs.  There are several ways:
+
+@itemize @bullet
+@item
+@kbd{C-c d} while visiting a file containing Scheme code will create a
+Scheme buffer and start the Scheme process, if necessary, and then instrument
+and load the source file.  This command also starts @value{STKDB}; you will
+see @value{STKDB}'s prompt in the Scheme buffer.
+
+@item
+The @menuitem{Debug File} item in the Debugging menu that appears when 
+visiting a 
+buffer of Scheme code does the same thing as @kbd{C-c d}. 
+@end itemize
+
+@node Activating
+@chapter Activating the Debugger
+
+Once @value{STKDB} is loaded into a Scheme session running under Emacs 
+(@pxref{Setting Up}) and you have loaded one or more files 
+containing Scheme functions you want to debug (@pxref{Preparing Files}), 
+the next step is to activate the debugger so that it controls the evaluation
+of test cases you type.  The Scheme command @code{(stkdb)} puts your Scheme
+session into @dfn{debugging mode}; you tell that this mode is active because 
+your prompt will either end in @code{[-]} or @code{[1]}, rather than the usual 
+style of prompt (which ends in @code{>}).  
+
+In debugging mode, an assortment of commands for manipulating and examining the 
+evaluation of your program become available.
+These are described in the sections
+that follow.  In addition to these commands, ordinary expression evaluation
+is available, as at the usual @value{STK} prompt.  Typically, you will enter
+debugging mode, type in a Scheme expression that exercises some piece of 
+program text you are trying to debug, possibly after first setting up some
+breakpoints in that text.  When something ``interesting'' happens, you will
+again get a debugging prompt (usually ending in 
+@code{[1]}, which indicates that you
+are stopped in the middle of an expression), and can then enter debugging
+commands.  The command @code{reset} (no parentheses needed) will exit from
+debugging mode, cancelling evaluation of any expression you might be in the
+middle of.
+
+@node Stopping
+@chapter Stopping and Continuing
+
+When in debugging mode, evaluation of an expression can be suspended and
+control given back to you (indicated by a @code{[1]} prompt, generally)
+under several circumstances:
+
+@itemize @bullet
+@item
+The program evaluates an expression that has a @dfn{breakpoint} set on it.
+
+@item
+You ask @value{STKDB} to execute a single evaluation @dfn{step}, and that
+step completes.
+
+@item
+Scheme detects a run-time error in your program (e.g., performing a @code{car} 
+on the value nil).  
+@end itemize
+
+@menu
+* Current Position::             How @value{STKDB} shows where you have stopped
+* Breakpoints::                  Placing a stopping point in your program
+* Conditional Breakpoints::      How to stop only under certain conditions
+* Stepping::                     Evaluating a single subexpression
+* Continuing::                   Resuming normal execution
+* Tail Recursion::               Tail recursion and its effect on stepping
+@end menu
+
+@node Current Position
+@section Showing Where You've Stopped
+
+Whenever @value{STKDB} stops your program during evaluation, it indicates 
+where the stop has occurred.  If you are not using Emacs, the information 
+consists of a file name and line number, which is a bit clumsy to use.
+When run under Emacs, however, things are much clearer.  Emacs will show 
+you a buffer containing file in which evaluation has stopped, highlighting
+the precise expression at which you are stopped.  This highlighting is 
+color-coded to indicate the reason for the stop:
+
+@itemize @bullet
+@item 
+Green highlighting indicates an expression that is about to be evaluated.
+It results from breakpoints (@pxref{Breakpoints}), steps (@pxref{Stepping}),
+and interrupts (@kbd{C-c C-c}). 
+
+@item
+Light blue highlighting indicates an expression that has just finished
+being evaluated.  The value just returned from that expression may be 
+displayed in the Scheme execution buffer, depending on how you got there.
+This kind of stop can result from stepping or continuing a program with
+the @code{finish} command (@pxref{Continuing}).
+
+@item
+Purple highlighting indicates an expression that is in the middle of 
+being evaluated.  This is how the @code{up} command (@pxref{Viewing Callers})
+indicates where a certain function was called.
+
+@item
+Red highlighting indicates an expression whose evaluation caused an error.
+@end itemize
+
+@node Breakpoints
+@section Setting and Clearing Breakpoints
+
+A @dfn{breakpoint} is a point in program text at which to @emph{break off}
+evaluation, returning control to the programmer.  What makes them interesting 
+is that, unlike errors, it is then possible to continue evaluation from 
+the breakpoint.  
+
+In debugging mode (the @code{[-]} or @code{[1]} prompt), the command
+
+@example
+break @var{func}
+@end example
+
+@noindent
+sets a breakpoint at the beginning of the code for function @var{func}
+(this is a command, not a Scheme function call; there are no parentheses).
+You can only set breakpoints in functions that have been instrumented first
+(@pxref{Preparing Files}).
+You can use @code{br} or just @code{b} 
+as shorthand for @code{break}.  The command
+
+@example
+break @var{file}:@var{line}
+@end example
+
+@noindent
+sets a breakpoint at line number @var{line} (numbering from 1) of file 
+@var{file}.  
+
+As usual, it is much more convenient to use Emacs for setting breakpoints.
+When the cursor is
+positioned at the line on which you want to break in a Scheme source buffer,
+the Emacs command @kbd{C-x @key{SPC}}, or the @menuitem{Set Breakpoint} menu
+command in the Debugging menu, will set a breakpoint on the indicated line.
+
+In response to these commands, @value{STKDB} will confirm with a
+@dfn{breakpoint number}, which you can use subsequently to refer to the
+breakpoint.  For example,
+
+@example
+stk[-] @b{br sample1.scm:200}
+Breakpoint 1 at sample1.scm:200
+stk[-] @b{break replace-all}
+Breakpoint 2 at sample1.scm:20
+@end example 
+
+@noindent
+To remove breakpoints, use the command @code{delete} in debugging mode. 
+This command allows you to remove either specific breakpoints (by the 
+numbers assigned by the @code{break} command) or to remove all breakpoints:
+
+@example
+stk[-] @b{delete 1 2}
+Removing breakpoint 1
+Removing breakpoint 2
+stk[-] @b{delete}
+Remove all breakpoints? [yn] @b{y}
+Removing all breakpoints.
+@end example
+
+@noindent
+In Emacs, put the cursor on the line whose breakpoint you wish to remove
+and use the @menuitem{Clear Breakpoint} menu item, or use the 
+@menuitem{Clear All Breakpoints} menu item to delete all breakpoints.  
+In addition, re-loading a file under @value{STKDB} (as with @kbd{C-c d}) removes
+all breakpoints on that file.
+
+To see the current set of breakpoints set in your program, use the command
+
+@example
+info break
+@end example
+
+@noindent
+in Scheme debugging mode.
+
+@node Conditional Breakpoints
+@section Stopping Conditionally
+
+Sometimes, you may have observed that there is a  problem at some point in
+your program that only occurs under
+certain infrequent circumstances (such as a list being null).  Placing a 
+breakpoint at that point will force you to issue @code{continue} commands 
+annoyingly many times before you get to the problem.  One way around this 
+is to make the breakpoint @dfn{conditional}.  
+
+The command 
+
+@example
+condition @var{bpnum} @var{expr}
+@end example
+
+@noindent
+where @var{bpnum} is the number of an existing breakpoint and
+@var{expr} is a Scheme expression, will cause @value{STKDB} to stop at the 
+breakpoint only if @var{expr} evaluates to a true value.  You may abbreviate
+@code{condition} as @code{cond}.   
+@value{STKDB} evaluates @var{expr} in the frame of the breakpointed 
+expression (@pxref{Viewing Values}).  To cancel the condition, use
+
+@example
+condition @var{bpnum}
+@end example
+
+@noindent
+(that is, without the conditional expression).
+In Emacs, the @menuitem{Condition Breakpoint} menu item will make the breakpoint at
+the cursor conditional, prompting for the condition in the minibuffer (simply
+typing @kbd{@key{RET}} in response will deconditionalize the indicated
+breakpoint).
+
+For example, suppose that a certain function is supposed to return a list of 
+symbols, but sometimes returns a list with a few scattered null lists as
+elements.  The function constructs this return value using an expression
+
+@example
+   (cons (car L) rest)
+@end example
+
+@noindent 
+You place a breakpoint on this line, to which @value{STKDB} responds:
+
+@example
+Breakpoint 4 at glorp.scm:44
+@end example
+
+@noindent
+In order to filter the responses so that you look only at interesting
+cases, use the command
+
+@example
+cond 4 (null? (car L))
+@end example
+
+@noindent
+Your program will then stop if @code{L} starts with a null list (or if
+@code{L} is not a pair, so that evaluating @code{car} causes an error).
+
+
+@node Stepping
+@section Stepping Through One Expression at a Time
+
+@dfn{Stepping} a program means evaluating one subexpression at a time (just 
+as a Scheme interpreter would), stopping after each.  This only makes sense 
+when you are in the midst of evaluating an expression in debugging mode
+and @value{STKDB} has stopped, presenting you with a @kbd{[1]} prompt.
+At that point, you have the following choices:
+
+@itemize @bullet
+@item
+The command @code{step} (which may be abbreviated @code{s}) continues
+evaluation until it reaches the next instrumented subexpression (that is,
+the next Scheme expression in a file that you have loaded with 
+@code{stkdb:debug-file} or equivalent key sequence).
+In Emacs, simply use the @kbd{@key{F5}} key for this purpose.
+
+@item
+The command @code{next} (abbreviated @code{n}) continues evaluation 
+until it completes the execution of the current subexpression and
+reaches the next one after that (or hits another breakpoint).
+In Emacs, this is the @kbd{@key{F6}} key for this purpose.
+@end itemize
+
+@noindent
+To see the distinction between these two, let's suppose that @value{STKDB}
+is stopped at the expression @code{(f (g 3))} below (in Emacs, that 
+expression would be highlighted in green):
+
+@example
+(define (g x) (+ x 3))
+(define (f y) (* y 7))
+
+(compute (f (g 3)) (h 1))
+@end example
+
+@noindent
+At this point, a @code{step} command moves to @code{(g 3)}. Another 
+@code{step} command moves to @code{(+ x 3)} in the definition of @code{g}.
+A third returns us to @code{(g 3)}, but highlighted in blue (assuming we
+are using  Emacs) 
+to indicate
+that we have finished evaluating it.  A fourth @code{step} takes us
+to @code{(* y 7)} in the definition of @code{f}.  A fifth returns us to
+@code{(f (g 3))} (in blue), and a sixth takes us to @code{(h 1)}.
+
+If, on the other hand, we go back to where we started and use a @code{next} 
+instead of @code{step}, we go from @code{(f (g 3))} immediately to @code{(h 1)},
+skipping the intermediate steps.
+
+When using @code{step}, you can arrange to see the value of each subexpression
+you step through. Use the debugging-mode command @code{show values} (the
+opposite is @code{show novalues}), or turn on 
+@menuitem{Show All Returned Values}
+in the @menuitem{Settings} submenu of the Debugging menu under Emacs.
+
+@node Tail Recursion
+@section Tail Recursion and Debugging
+
+In a Scheme program such as this:
+
+@example
+(define (factorial n p) 
+  (cond ((<= n 1) p)              ;; Breakpoint here
+        (else (factorial (- n 1) (* n p))))) ;; Line 3
+@end example
+
+@noindent
+it @emph{looks} as evaluation of @code{(factorial 15 1)}
+ought to give backtraces like this:
+
+@example
+ [0] foo.scm:2 (factorial)
+ [1] foo.scm:3 (factorial)
+ [2] foo.scm:3 (factorial)
+ [3] foo.scm:3 (factorial)
+ ...
+@end example
+
+@noindent
+But in fact, the actual backtrace will always have one line!  This is 
+because the call to @code{follows} on line 4 is @dfn{tail recursive}.  That
+is, @code{follows} returns the value of this recursive call directly, 
+without examining it or performing any other operations with it; the 
+recursive call is
+the very last action of @code{follows}.  
+
+The Scheme language actually requires that tail recursions such as this
+must be able to run indefinitely, just like a loop in other languages.
+They are not allowed to require increasing amounts of space just to keep
+track of the call chain.   As a result, you'll normally see ``truncated'' 
+backtraces like this in tail-recursive situations.  
+
+You'll also see that the @code{next}, @code{step}, and @code{finish}
+commands work confusingly when dealing with tail recursion.  For example, 
+if you were evaluating @code{(factorial 5 1)} and you are at the expression
+@code{(<= n 1)} at the point that @code{n} is 1, any of these commands will 
+simply print 120 (the final answer).  You will @emph{not} stop again at
+the call on line~3 (highlighted blue), because all the intervening recursive 
+calls that got you to the point where @code{n} is~1 will have 
+been ``forgotten.'' 
+
+This behavior can be confusing.  If so, @value{STKDB} gives you a way to 
+``cheat.''  In Emacs, simply turn on the 
+the ``Keep Tail Recursion'' flag in the @menuitem{Settings} submenu of the 
+Debugging menu, and then reload the files you're interested 
+in with @kbd{C-c d}, as usual.  You must reload them @emph{after} changing
+the value of this flag in order to have an effect.
+In this mode, @value{STKDB}  will treat
+tail recursions like
+general recursions.  Of course, your program will now ``blow up'' by exhausting
+memory in some cases where it wouldn't have before, so you can't expect to
+be able to do any really long evaluations.
+
+@node Continuing
+@section Resuming Normal Execution
+
+To allow evaluation to proceed to the next breakpoint (or error), use the 
+command @code{continue} (abbreviated @code{cont} or @code{c}).  In Emacs, this
+is the @kbd{@key{F8}} key.
+
+It is sometimes useful to finish evaluation of the current function, and then
+stop again, showing the value computed.  The @code{finish} command (abbreviated
+@code{f}) does this.  In Emacs, this is the @kbd{@key{F7}} key.  This command
+leaves us at the call whose body we were just executing (highlighted in blue
+under Emacs).
+
+For example, suppose we have called @code{(printem foo)}, where:
+
+@example
+(define (printem LL)
+  (if (not (null? LL))
+      (begin (print L) (printem (cdr LL)))))
+
+(define (print L)
+  (display "[")
+  (let loop ((x L))
+    (if (null? x)
+        (display "]")
+        (begin
+          (display (car x))   ;; << STOPPED HERE
+          (if (not (null? (cdr x))) (display ","))
+          (loop (cdr x))))))
+@end example
+
+@noindent
+and our program is stopped in @code{print} on the indicated line.
+The @code{finish} command will continue the program until we finish printing 
+the current list and return to @code{printem}; the expression @code{(print L)}
+will be highlighted in blue.
+
+@node Examining
+@chapter Examining the Evaluation State 
+
+While your program has stopped, there are basically two sorts of things you'll
+need to do:
+
+@itemize @bullet
+@item
+Figure you why evaluation got to this particular expression.  In part,
+this usually means figuring out what function call elsewhere in your program
+caused evaluation of the function containing this expression.
+
+@item
+Observe the values of the local variables and parameters at the point in the
+program where you've stopped.
+@end itemize
+
+@menu
+* Backtraces::                    The chain of function calls that got here
+* Viewing Callers::               Looking at one caller in detail
+* Viewing Values::                Looking at variables and parameters
+@end menu
+
+@node Backtraces
+@section BackTraces and the Call Chain
+
+In debugging mode, the command @code{bt} (or @code{where} or @code{backtrace})
+prints a @dfn{backtrace} of the current state of evaluation.  If you are
+running in an Emacs scheme buffer, the menu item @menuitem{Backtrace} displays
+the output of a backtrace in a separate buffer.
+
+A backtrace is an account of how the current expression (the one you're stopped
+at) came to be evaluated.  To see what this involves, consider the following
+program:
+
+@example
+;; This is file count.scm, line 1
+(define (count-tips tree)             
+   (if (pair? tree)
+       (count-kids-tips (cdr tree)) ;; line 4
+       1))
+(define (count-kids-tips kids)     
+   (if (null? kids) 0
+       (+ 
+          (count-tips (car kids))   ;; line 9 << BREAKPOINT HERE
+          (count-kids-tips (cdr kids))))) 
+@end example
+
+@noindent
+where we have set a breakpoint at the indicated location,
+are in the process of evaluating
+
+@example
+(count-tips '(martin 
+               (marty (sally tommy matt) (heidi taylor))
+               (donald peter (melinda jessica))
+               (george paul ann (john dana))))
+@end example
+
+@noindent
+and have stopped a few times at the breakpoint, so that, let's say, we are
+at the point in the program where @code{kids} is @code{(tommy matt)}.  
+Asking for a backtrace will get us this:
+
+@example
+*[0] /tmp/count.scm:9 (count-kids-tips)
+ [1] /tmp/count.scm:4 (count-tips)
+ [2] /tmp/count.scm:9 (count-kids-tips)
+ [3] /tmp/count.scm:4 (count-tips)
+ [4] /tmp/count.scm:9 (count-kids-tips)
+ [5] /tmp/count.scm:4 (count-tips)
+@end example
+
+@noindent
+Translation: we are now at line 9 in @code{count.scm}, which is in 
+@code{count-kids-tips}; we're there because
+we were called from line 4, which is in @code{count-tips}; we got there by
+being called from line 9 in @code{count-kids-tips}, etc.  If the debugger
+were perfect, there would be a line @code{[6]} that said that we were in 
+@code{count-tips} because we got called from the 
+@code{(count-tips '(martin...))} line that the user typed.  Sorry; it's not
+perfect.
+
+We say that each line in the backtrace denotes a @dfn{frame}, basically an
+instance of the evaluation of a function.  
+Frame number~0 is known as the @dfn{innermost
+frame}.  The asterisk marks the @dfn{current frame}, i.e., the one the 
+debugger is examining at the moment.  One can also look at the other frames;
+@xref{Viewing Callers}.  The highlighted expression that Emacs shows 
+you when you stop is the expression within the innermost frame that is currently
+being evaluated. We'll refer to this point (somewhat archaically) as the
+@dfn{program counter} of the frame.
+
+In Emacs, a copy of the backtrace gets put in a separate buffer.  You can 
+arrange to have it reproduced automatically each time the program stops 
+at a breakpoint or step by 
+turning on @menuitem{Auto-Display Backtrace} in the @menuitem{Settings}
+submenu
+of the Debugging menu. 
+
+@node Viewing Callers
+@section Looking at Other Frames
+
+A backtrace (@pxref{Backtraces}) gives you a rough idea of the overall 
+program state.  For more details, you can examine the stack frames in detail.
+In debugging mode, the command @code{up} 
+will
+increment the current frame number by one, so that we are looking 
+at what is called the  @dfn{caller} of what used to be the current frame.
+In Emacs, this is @kbd{@key{F3}} or @menuitem{View Caller} in the Debugging menu.
+Emacs will highlight the expression at the program counter of this new
+current frame---typically a 
+function call---in purple,  indicating that it is not the innermost frame.  
+At this point, you can
+examine the variables in that frame (@pxref{Viewing Values}). 
+
+The inverse operation to @code{up} is (of course) @code{down} (@code{d}), 
+or in Emacs
+@kbd{@key{F4}} or  @menuitem{View Callee} in the Debugging menu.  In addition, the
+command @code{frame @var{n}} (or @code{fr @var{n}}), 
+immediately makes frame number @var{n} the 
+current frame, so that @code{frame 0} returns immediately to the innermost 
+frame.
+
+Changing the current frame has no effect on the commands that step or continue 
+the program.  In effect, we always step or continue from the innermost frame.
+
+@node Viewing Values
+@section Looking at Variables and Parameters
+
+At any time, the environment associated with the current frame---that is,
+the values of all variables and parameters that are visible at that point in 
+the program---is also available to the debugger.  In debugging mode, you can
+print the value of any Scheme expression, @var{EXPR}, with the command
+@code{print @var{EXPR}} (and you may abbreviate @code{print} as @code{pr} or
+@code{p}).  
+If the syntax of @var{EXPR} does not conflict with that of any debugging 
+command (i.e, if you are not trying to evaluate a simple variable with a name 
+like @code{next}, @code{c}, etc.), then can you leave off the @code{print}, 
+just as you would in an ordinary interactive Scheme session.
+
+The debugging-mode command @code{info locals} (Debugging menu item 
+@menuitem{See Local Variables}) will print the ``local variables'' of the current 
+frame.  This is basically the set of all parameters and let-bound 
+variables defined with the function associated with the current frame.
+
+By combining printing with the use of the @code{up} and @code{down} 
+commands (@pxref{Viewing Callers}), you can look at most of the 
+variables relevant to your program while it is stopped.  Reusing an
+example from elsewhere, consider:
+
+@example
+;; This is file count.scm, line 1
+(define (count-tips tree)             
+   (if (pair? tree)
+       (count-kids-tips (cdr tree)) ;; line 4
+       1))
+(define (count-kids-tips kids)     
+   (if (null? kids) 0
+       (+ 
+          (count-tips (car kids))   ;; line 9 << BREAKPOINT HERE
+          (count-kids-tips (cdr kids))))) 
+@end example
+
+@noindent 
+where we are evaluating
+
+@example
+(count-tips '(martin 
+               (marty (sally tommy matt) (heidi taylor))
+               (donald peter (melinda jessica))
+               (george paul ann (john dana))))
+@end example
+
+@noindent
+and are stopped at the indicated breakpoint with the following 
+backtrace:
+
+@example
+*[0] /tmp/count.scm:9 (count-kids-tips)
+ [1] /tmp/count.scm:4 (count-tips)
+ [2] /tmp/count.scm:9 (count-kids-tips)
+ [3] /tmp/count.scm:4 (count-tips)
+ [4] /tmp/count.scm:9 (count-kids-tips)
+ [5] /tmp/count.scm:4 (count-tips)
+@end example
+
+@noindent
+At this point, we might type any of the following:
+
+@example
+stk[1] print @b{kids}
+(tommy matt)
+stk[1] p @b{kids}
+(tommy matt)
+stk[1] @b{kids}
+(tommy matt)
+stk[1] @b{pr (car kids)}
+tommy
+stk[1] @b{(car kids)}
+tommy
+stk[1] @b{info locals}
+  kids: (tommy matt)
+@end example
+
+@noindent
+Now suppose we go up to previous frames:
+
+@example
+stk[1] @b{up}
+stk[1] info locals
+  tree: (sally tommy matt)
+stk[1] @b{(cadr tree)}
+tommy
+stk[1] @b{up}
+stk[1] @b{info locals}
+  kids: ((sally tommy matt) (heidi taylor))  
+stk[1] (cadr kids)
+(heidi taylor)
+@end example
+
+@noindent
+In Emacs mode, if there is a backtrace displayed, it will reflect the results 
+of the @code{info locals} commands, like this:
+
+@example
+ [0] /tmp/count.scm:9 (count-kids-tips)
+    kids: (tommy matt)
+ [1] /tmp/count.scm:4 (count-tips)
+    tree: (sally tommy matt)
+*[2] /tmp/count.scm:9 (count-kids-tips)
+    kids: ((sally tommy matt) (heidi taylor))
+ [3] /tmp/count.scm:4 (count-tips)
+ [4] /tmp/count.scm:9 (count-kids-tips)
+ [5] /tmp/count.scm:4 (count-tips)
+@end example
+
+In addition, you can arrange to have local variables automatically
+displayed either for the innermost (top) frame or for all frames whenever
+your program stops.  To see just those for the topmost frame, 
+choose the @menuitem{Auto-Display Backtrace/Top Frame} 
+item in the @menuitem{Settings} submenu of the Debugging menu; to see
+locals in all frames,
+choose the @menuitem{Auto-Display Backtrace/Locals} item.
+
+@include gpl.texi
+
+@include fdl.texi
+
+@node Index
+@unnumbered Index
+
+@printindex cp
+
+@bye

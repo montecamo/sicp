@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# A simple shell script to test snow without installing it
+#
+
+if test -x ../Snow/snow
+then 
+   D=..
+else
+   D=../..
+fi
+
+STK_LIBRARY=$D/Lib 
+STK_LOAD_PATH=$STK_LIBRARY:$D/STklos:$D/Extensions
+
+export STK_LIBRARY STK_LOAD_PATH
+exec $D/Snow/snow $*

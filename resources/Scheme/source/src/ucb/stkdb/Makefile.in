@@ -1,0 +1,64 @@
+PREFIX		= @prefix@
+LIBDIR		= ${PREFIX}/lib/stk
+BINDIR		= ${PREFIX}/bin
+SITESCHEMEDIR	= ${LIBDIR}/site-scheme
+STKDBDIR		= ${SITESCHEMEDIR}/stkdb
+INFODIR		= ${PREFIX}/info
+EMACSDIR		= ${PREFIX}/lib/emacs/lisp
+
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+
+MKDIR		= @MKDIR@
+MKDIR_INST	= ${MKDIR} -m 755
+
+SED_CONFIG	= -e 's,[@]EMACSDIR[@],$(EMACSDIR),' \
+	 	  -e 's,[@]INFODIR[@],$(INFODIR),' \
+		  -e 's,[@]SCMDIR[@],$(STKDBDIR),' 
+
+.PHONY: info tidy clean distclean default uninstall
+
+FILES		= stkdb.scm \
+		  pexpr.scm \
+		  read.scm \
+		  stkdb.el \
+		  doc/stkdb.info
+
+all: ${FILES}
+
+install: ${FILES}
+	@test -d ${STKDBDIR} || ${MKDIR_INST} ${STKDBDIR}
+
+	@for i in "stkdb.scm pexpr.scm read.scm"; do \
+		echo "Installing $$i"; \
+		${INSTALL_DATA} $$i ${STKDBDIR}; \
+	done;
+
+stkdb.scm: stkdb.scm.in
+	@echo "Creating $@"
+	@sed $(SED_CONFIG) $< > $@
+
+pexpr.scm: pexpr.scm.in
+	@echo "Creating $@"
+	@sed $(SED_CONFIG) $< > $@
+
+read.scm: read.scm.in
+	@echo "Creating $@"
+	@sed $(SED_CONFIG) $< > $@
+
+stkdb.el: stkdb.el.in
+	@echo "Creating $@"
+	@sed $(SED_CONFIG) $< > $@
+
+stkdb.info: doc/stkdb.texinfo doc/fdl.texi doc/gpl.texi
+	(cd doc; makeinfo -I . -o stkdb.info stkdb.texinfo)
+
+tidy: 
+	rm -f *~ */*~
+
+clean: tidy
+	rm -f doc/stkdb.info
+	rm -f stkdb.el stkdb.scm read.scm pexpr.scm 
+
+distclean: clean
+	rm -f Makefile

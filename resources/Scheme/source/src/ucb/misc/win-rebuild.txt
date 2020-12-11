@@ -1,0 +1,73 @@
+
+Important information on recompiling the UCB Scheme distribution for Windows:
+
+0. To recompile the installation, use Visual Studio 6.0a and Visual C++.
+
+1. You should unpack the distribution in C:\TEMP, so that the stk source root
+directory is C:\TEMP\stk and the workspace is in C:\TEMP\stk\Win32\STk.dsw.
+(If you put it in a different directory, things will break -- you will get a
+"Error executing c:\winnt\system32\cmd.exe" at the end of the build.)
+
+2. Make sure there exists the file stk/Src/stkvers.h.  If it doesn't exist,
+you will get errors regarding "cannot open include file stkvers.h". The way to
+fix this is to create a file stkvers.h in stk/Src with the single line:
+
+#define STK_VERSION "4.0.1-ucb1.16"
+
+Also, make sure there exists the file stk/VERSION, containing just "4.0.1".
+
+3. Once you have unpacked everything, double-click on STk.dsw, and Visual C++
+will open up. Use the "Rebuild All" option in the "Build" menu.
+
+4. The program will NOT run until you run the install script, though. Here's
+how:
+
+4.1. You must install the Cygwin utilities (available from http://cygwin.com)
+to run the install script.
+
+4.2. Make sure your version of Cygwin has zip and unzip. Most newer versions
+do. If it doesn't, you must install the Info-ZIP utilities (command-line unzip
+and zip, available from ftp://ftp.icce.rug.nl/infozip/WIN32) to run the
+install script. I installed these in the cygwin /usr/local/bin directory
+(C:\cygwin\usr\local\bin\unzip.exe, for example).
+
+4.3. OBSOLETE: Copy envdraw-1.3.tar.gz and slib2c7.zip to the stk/brg directory, if they
+aren't there already.
+
+4.4. cd to the main stk directory (C:\TEMP\stk) and run the installation script.  It takes
+one argument, which is the name of the installation directory.  Public
+distributions should usually use "C:/Program Files/STk" (with *forward*
+slashes; these will be corrected as necessary by the install scripts.)  For
+example:
+
+  administrator@CELES$ bash brg/win-inst.sh "C:/Program Files/STk"
+
+Or, at your option, you can use a different installation directory.  Just be
+sure it's clear to the user.
+
+5. The script will show some output like the following:
+
+cp: Tk/tk.h: No such file or directory
+cp: Tk/tkInt.h: No such file or directory
+cp: Mp/fgmp-1.05b/gmp.h: No such file or directory
+cp: Lib/Images/CVS: omitting directory
+Archive:  c:/temp/stk/brg/slib2c7.zip
+ [ huge list of files in slib unzipping ]
+unpacking envdraw
+patching envdraw
+patching file `view-misc.stk'
+patching file `view-updates.stk'
+patching file `view.stk'
+installing envdraw wrapper in C:/Program Files/STk/MS-Win32/envdraw.bat
+patching file `init.stk'
+*** Installation completed in C:/Program Files/STk
+
+6. To complete the final step, make a zip file containing the STk directory
+and place it on the web site somewhere obvious.
+
+------------------------------------------------------------------------------
+
+ initial version (brg): 14/Jul/2000
+ updated (brg): 13/Dec/2000
+ updated (brg): 17/May/2002
+ updated (kevinm): 17/May/2005

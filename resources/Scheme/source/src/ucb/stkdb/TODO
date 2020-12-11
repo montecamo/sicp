@@ -1,0 +1,41 @@
+9. Commands at breakpoints.
+11. Stepping mode.
+17. Handle the "load" function properly in instrumented files.
+20. Don't print redundant backtrace in Emacs mode?
+28. Remove highlighting when debugging finished or interrupted.
+29. Do proper reset when reloading files when debugger is in the middle
+    of something.
+30. Why does error throw away so many frames (debugging Scheme-0 evaluator)?
+32. Make it less easy to accidentally exit the debugger.
+33. Allow breakpoints on symbols and self-evaluating constructs?
+34. Documentation needs index.
+
+DONE
+
+1. Clear bps.
+2. Set/clear by function name.
+3. Announce BP stop and BP setting.
+4. Unify commands of two "top-levels" functions.
+5. Better error recovery for commands with arguments.
+10. Menu commands like gjdb.
+12. Use more recent Elisp features for menus (menu-item ...).
+13. Allow stepping to display returned values, too.
+8. Conditional breakpoints
+15. Handle ^C correctly.
+14. Be less silent when expression evaluation finishes as a result of a
+    'continue' or 'step'.
+16. Add "Help" menu item.
+19. Make backtrace look the same in Emacs and non-Emacs mode.
+18. Clear breakpoints when file reloaded.
+7. Integrate with our OOP stuff.
+22. Get class & instance variables' values.
+21. Add conditional breakpoints to menus.
+0. DOCUMENTATION
+23. Handle compiler intermediate files better.
+24. Clean up prompts with Berkeley scm.
+21. Don't wait for end-of-line.
+25. Better buffer-switching on stkdb-debug-file.
+26. Add 'debug definition' commands.
+6. Better diagnostics for expressions evaluated by debugger top levels.
+27. Use color-handling from more modern Emacs's.
+31. Show local variables automatically in outer frames?

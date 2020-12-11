@@ -1,0 +1,48 @@
+;; -*-Mode: Scheme;-*-
+;;
+;; Copyright (C) 1995 Josh MacDonald <jmacd@po.EECS.Berkeley.EDU>
+;;
+;; Permission to use, copy, and/or distribute this software and its
+;; documentation for any purpose and without fee is hereby granted, provided
+;; that both the above copyright notice and this permission notice appear in
+;; all copies and derived works.  Fees for distribution or use of this
+;; software or derived works may only be charged with express written
+;; permission of the copyright holder.
+;; This software is provided ``as is'' without express or implied warranty.
+;;
+
+;; This was broken by the tail recursive changes max@gac.edu sent me.
+;; I might fix it someday.
+
+;; Here is some code that Nick Weaver posted to comp.lang.scheme around
+;; the time I was writing the call/cc code, so I used it to test things.
+;; He gets credit though: nweaver@madrone.cs.berkeley.edu
+
+(define readyList '())
+
+(define exit
+  (let ((exit exit))
+    (lambda ()
+      (if (not (null? readyList))
+          (let ((cont (car readyList)))
+            (set! readyList (cdr readyList))
+            (cont '()))
+          (exit)))))
+
+(define (fork fn arg)
+  (set! readyList (append readyList (cons (lambda (x) (fn arg) (exit)) '()))))
+
+(define (yield)
+  (call/cc (lambda (thisCont)
+             (set! readyList (append readyList (cons thisCont '())))
+             (let ((cont (car readyList)))
+               (set! readyList (cdr readyList)) (cont '())))))
+
+;; Try these commands.
+
+;; (fork (lambda (x) (display x) (newline)) 'foo)
+;; (fork (lambda (x) (display x) (newline)) 'bar)
+;; (yield)
+;; (yield)
+;; (fork (lambda (x) (display x) (newline)) 'baz)
+;; (exit)

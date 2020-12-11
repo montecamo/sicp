@@ -1,0 +1,58 @@
+						  17 October, 1996
+
+Announcing version 1.3 of EnvDraw, an instructional package for STk.
+
+EnvDraw is a environment diagramming package which draws environment
+diagrams as taught in Abelson and Sussman's _Structure and
+Interpretation of Computer Languages_.  It was written as an
+instructional tool for the CS61A course at the University of
+California at Berkeley.  The environment diagrammer is a metacircular
+evaluator which draws procedures, environments, and box and pointer
+diagrams along with all the accompanying symbols and mutation.  It
+includes a box and pointer diagrammer which handles circular list
+structures, cons cell mutation, and also will watch for modification
+of any symbols known to be pointing to drawn cells.
+
+			     REQUIREMENTS
+
+EnvDraw works with STk 3.1.1 (Dont use 3.1, its broken!).  Slib must
+be installed.  Optionally, a patch to error.c in the source
+distribution allows the metacircular evaluator to catch errors nicely.
+
+			   Getting EnvDraw
+
+I have placed a copy of envdraw-1.3.tar.gz in the following places:
+
+ftp://ftp.xcf.berkeley.edu/pub/envdraw/envdraw-1.3.tar.gz
+
+in the incoming directory of the scheme repository:
+
+ftp://ftp.cs.indiana.edu/pub/scheme-repository/incoming/envdraw-1.3.tar.gz
+
+in the incoming directory of the STk home site:
+
+ftp://kaolin.unice.fr/pub/incoming/envdraw-1.3.tar.gz
+
+			      INSTALLING
+
+Pick a directory to install the EnvDraw sources in.  If you would
+like to install the sources as a subdirectory of your home directory
+and the envdraw-1.3.tar.gz file is located in the same directory,
+
+% cd ~
+% gunzip envdraw-1.3.tar.gz
+% tar -xf envdraw-1.3.tar
+
+This extracts a subdirectory named envdraw-1.3 with a number of files.
+The files are organized as follows:
+
+envdraw-1.3/Help/	HTML help files
+envdraw-1.3/doc/	Postscript and LaTeX documentation
+envdraw-1.3/icons/	Icons used by Tk
+envdraw-1.3/diffs/	The optional diff to error.c described above
+envdraw-1.3/test/	Some tests
+envdraw-1.3/lib/        Initialization shell and scheme scripts.
+envdraw-1.3/*.stk	The source files
+
+See the file envdraw-1.3/lib/envdraw.sh for an example of a Bourne
+shell script that has all the required environment variables set.

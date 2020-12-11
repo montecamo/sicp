@@ -1,0 +1,472 @@
+2005-02-08  Paul Hilfinger  <hilfingr@tully.CS.Berkeley.EDU>
+
+	* stkdb.el.in (force-stkdb-mode): Add an extra sleep-for that is 
+	necessary (for some reason) to get the mode initialized properly.
+
+2003-12-09  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* read.scm.in (maybe-read-peculiar-identifier): Allow for 
+	real numbers that start with "."
+	(read-quoted-identifier): New function for |...| extension.
+	(read-token): Allow |...| extension.
+	(read-rest-of-number): New function that allows passing in characters
+	already read.  Treats non-standard numbers as identifiers.  Simplified
+	from the original.
+	(read-number): Use read-rest-of-number.
+
+2003-11-13  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Stkdb/stkdb.scm.in (stk-debugger): Correct spelling of msg=>mesg
+	in stkdb:set-bp!.
+
+2003-11-09  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Stkdb/stkdb.scm.in (stk-debugger): Save input port on each entry
+	to stkdb and use it for all input, rather than (current-input-port).
+
+2003-10-19  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Stkdb/stkdb.el.in (scheme-choose-background-spec): Correct 
+	recursive call.
+
+2003-10-17  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Stkdb/stkdb.scm.in (find-reasonable-line): New function.
+	(stkdb:set-bp!): Use find-reasonable-line.
+	(stkdb:reset): Do nothing if not exiting and at outer debugging level.
+	Undisplay position when there is something to exit.
+	
+2003-10-05  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Stkdb/stkdb.scm.in (instrument-case): Correct handling of case.
+
+2003-09-19  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in (instrument-if): Correct test from null? to psd-null?.
+	(mesg): New function for informational and error messages.
+	Substitute mesg for (format (current-error-port) ...) throughout.
+	pexpr.scm.in: Define and use psd-error to get correct error procedure.
+	read.scm.in: Ditto.
+	
+2003-09-12  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in: Add more points where breakpoints may be placed.
+
+2003-09-11  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in: Correct backtrace command in command loop.
+	(instrument-if): New function.
+	(instrument-logical): New function.
+	(instrument-expr): Handle tail-recursion removal in 'if', 'and', 
+	and 'or' special forms.
+
+        * Makefile.in: Also substitute for INFODIR.
+	* stkdb.el.in: Use INFODIR.
+	
+	* doc/stkdb.texinfo (Tail Recursion): Emphasize that program must
+	be reloaded for this to work.
+	(Auto-Display): Document new menu items and automatic
+	backtracing options.
+
+2003-09-10  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in: Modify :auto-backtrace and display to 
+	provide for auto backtraces that display no locals, all locals,
+	or innermost locals.
+	* stkdb.el.in: Add radio-button items for all auto-backtrace
+	possibilities.
+
+2003-07-18  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in (instrument): Handle 'quote' case.
+
+	* stkdb.el.in (stkdb-vicinity): Correct @PREFIX@ to @SCMDIR@.
+
+2003-07-11  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* configure: More flexibility in installation directories.
+
+	* Makefile.in: Ditto.
+
+2003-07-09  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* doc/stkdb.texinfo: Some editorial modifications.
+
+2003-05-02  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	Modernize handling of face color.
+	* stkdb.el.in (stkdb-choose-background-spec): New function.
+	(stkdb-bpt-face, stkdb-return-face, stkdb-show-stack-frame-face,
+	stkdb-error-face): Define using defface.  Specify alternative colors.
+	(stkdb-type-to-face): Return face symbols, not their values.
+	(stkdb-update-current-stack-frame): Use format rather than concat to
+	handle integer frame values properly.
+	(stkdb-insert-trace-line): Ditto.
+	(stkdb-update-local-var-display): Ditto.
+
+2003-04-25  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.el.in (stkdb-mode): Don't refer to the scheme process with
+	scheme-program-name; use (scheme-proc) instead.
+	(): Require cl.el explicitly.
+
+2003-04-21  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in (top-level): Handle eof properly.
+
+2003-04-18  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in (stkdb:instrument-file): Allow :start-line and 
+	:end-line options.
+	Require option value with :keep-tail-recursion.
+	Use get-keyword.
+	(clear-file-posns): Rename to clear-file-posns!
+	(clear-file-posns!): Add start and end parameters.
+	(clear-file-breakpoints!): Ditto.
+	(exit-continuation): Define.
+	(stkdb:eval-loop): Cause resets to dump us back here.
+	(top-level): Ditto.
+	Differentiate reset/quit from exit.
+	Fix signal-restoration loop.
+	(stkdb:reset): Use exit-continuation to exit one level only.
+	
+	* stkdb.el.in (scheme-mode-map): Remove scheme-or-stkdb-... bindings.
+	Remove stray "'" after debug-file.
+	Add Debug Definition and Debug Definition & Go.
+	(scheme-or-stkdb-send-definition): Remove.
+	(scheme-or-stkdb-send-definition-and-go): Remove.
+	(stkdb-debug-file-option-string): Add option value to 
+	:keep-tail-recursion.
+	(stkdb-send-definition): Add start, end line numbers when sending
+	definition.
+	(stkdb-debug-file): Add start end optional arguments.
+	(stkdb-pop):  New function.
+	(stkdb-reset): Add argument to stkdb:reset.
+
+2003-04-16  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* configure (prefix): Remove trailing / in all cases.
+
+	* stkdb.el.in (force-stkdb-mode): Use save-window-excursion to 
+	prevent gratuitous hiding of the source buffer.
+
+	* stkdb.scm.in (read-line): Use original definition. 
+
+2003-04-15  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in (UNDEFINED-VALUE): New constant.
+	(OUTPUT-MARK): Write in all caps to emphasize constancy.
+	(display-result): Compensate for annoying 'okay' with Berkeley
+	revisions when suppressing prompts.
+	(safe-eval-print): Use display-result instead of repl-display-result.
+
+2003-04-14  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* doc/stkdb.texinfo (Conditional Breakpoints): Document 
+	"Condition Breakpoint" menu item.
+	menuitem: New macro.
+	Use menuitem throughout for labels on menu buttons.
+
+	* stkdb.el.in (scheme-active-p): New function
+	(force-stkdb-mode): Use scheme-active-p.
+	(scheme-mode-map): Add "Condition Breakpoint" command.
+	Add another separator.
+	(stkdb-condition-breakpoint): New function.
+	(stkdb-inferior-minor-mode-map): Add another separator.
+
+	* stkdb.scm.in (bp-designator->bpnum): New function.
+	(bp-designator-parse): New function.
+	(top-level): Handle FILENAME:LINE in condition command.
+	Use bp-designator-parse to parse argument in break command.
+	(stkdb:debug-file): Generate better temporary file name.
+	Clean up better after error.
+	(stkdb:instrument-file): Close input port, too, and make sure
+	that ports get closed, even in the event of errors.
+	
+
+
+2003-04-13  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* configure: Remove / after @PREFIX@ replacement.
+	* stkdb.scm.in: Add Emacs mode setting.
+	(instrument-expr): Remove redundant version.
+
+	* stkdb.el.in: Ditto.
+
+	* stkdb.scm.in (instrument-expr): Don't instrument outside of a
+	lambda (implicit or explicit).
+
+2003-04-11  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in: Add Berkeley OOP support.
+	(instrument-define-class): New function.
+	(instrument-class-member): New function.
+	(instrument-expr): Include define-class case.
+
+2003-04-10  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in: keep-tail-recursion? -> remove-tail-recursion? 
+	throughout, in accord with standard usage.
+	(stkdb:instrument-file): Use :keep-tail-recursion as the keyword.
+	Clear out breakpoints in file being instrumented.
+	(back-trace): Change format of text-line backtrace to conform to
+	Scheme Backtrace buffer.
+	(clear-file-breakpoints!): New function.
+
+	* stkdb.el.in: Reverse sense of "Keep Tail Recursion", so that it is
+	the opposite of the usual sense of "remove tail recursion".
+	
+2003-04-09  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm.in (display-posn): Add case for type = 'intr.
+	(stkdb:eval-loop): Interrupt should re-enter top-level with 'intr as its
+	reason.
+	(stkdb:set-bp!): Renamed from stkdb:set-bp.
+	(do-break-command): New function.
+	(top-level): Add 'break' command.
+	Add 'display values'
+	Add 'continue' as alternative for 'cont' and 'c'.
+	* stkdb.el.in: Change stkdb:set-bp to stkdb:set-bp!.
+	
+2003-04-08  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+        * stkdb.el.in (stkdb-help): New function.
+	Add "Help" to Debugging menus.
+	Change "Settings" to "Settings...".
+	
+	* configure: New file
+	* Makefile.in: New file
+	* stkdb.scm.in: Rename from stkdb.scm
+	* stkdb.el.in: Rename from stkdb.el
+
+	* pexpr.scm.in: Rename from pexpr.scm
+	* read.scm.in: Rename from read.scm
+
+	* doc/stkdb.texinfo: New file.
+	* doc/gpl.texi: New file.
+	* doc/fdl.texi: New file.
+	
+2003-04-07  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm (stkdb:eval-loop): Add ^C handling.
+	(suppress-next-prompt?): Remove.
+	(suppress-prompt-count): New variable.
+	(decr-suppress-prompts!): New function.
+	(suppress-prompts!): New function.
+	(unsuppress-prompts!): New function.
+	(prompt): Use decr-suppress-prompts!.
+	(top-level): Use suppress-prompts! and unsuppress-prompts!.
+	(top-level-val): Ditto.
+	(stkdb:report-error): Ditto.
+	(stkdb:eval-loop): Ditto.
+	(stkdb): Ditto.
+	
+	* stkdb.el (stkdb-sentinel): Also reset stkdb mode when terminated 
+	by signal.
+
+2003-04-06  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm (stkdb:set-emacs-mode!) Remove.
+	(stkdb:set-options!): Add :emacs option.
+	(stkdb:set-bp-func!): New function.
+	(bp-cond-true?): New function.
+	(breakpoint-condition): New function.
+	(set-breakpoint-condition!): New function.
+	(top-level): Implement breakpoint conditions & the 'condition' command.
+	Use safe-eval-print.
+	(get-posn): Add breakpoint-condition slot to position entries.
+	(widen-to-line): Fill in (dummy) breakpoint condition.
+	(bp-record-filename): Change to vector representation.
+	(bp-record-line): Ditto.
+	(bp-record-func): Ditto.
+	(bp-record-num): Ditto.
+	(record-bp!): Ditto.  Add condition field.
+	(bp-record-cond): New function.
+	(set-bp-record-cond!): New function.
+	(stkdb:set-bp-cond!): New function.	
+	(info-breakpoints): Print condition clauses, too.
+	(stkdb:clear-all-bps): Rename to stkdb:clear-all-bps!
+	(stkdb:set-bp-func): Rename to stkdb:set-bp-func!
+	(stkdb:set-clear-bps-func): Rename to stkdb:set-clear-bps-func!
+	(safe-eval-print): New function.
+
+	* stkdb.el (stkdb-sentinel): Use with-current-buffer.
+	Unset stkdb-mode on exit.
+	(stkdb-mode): Make work with null arg.
+	Reset options in debugger state when (re)starting stkdb mode.
+	Allow turning off stkdb mode when there is no process.
+	(stkdb-toggle-auto-backtrace): Remove.
+	(stkdb-toggle-tail-recursion): Remove.
+	(stkdb-debugging-options-state): New function.
+	(stkdb-reset): Reset options settings also.
+
+2003-04-04  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.el (stkdb-menu-item): Rename to stkdb-define-menu-item.
+	(stkdb-define-menu-item): Renamed from stkdb-menu-item.
+	Add MAP parameter, use more modern Emacs facilities for menu-item 
+	definition.  Revise accelerator key computation (remove dependence on
+	gjdb functions).
+	(stkdb-settings-menu-map): New variable.  
+	Add menu toggle buttons for setting auto-display, tail-recursion
+	retention, display of returned values on stepping.
+	(stkdb-inferior-minor-mode-map): Use stkdb-define-menu-item. 
+	Add settings menu.
+	(stkdb-mode): Correct comment punctuation.
+	(scheme-mode-map): Use stkdb-define-menu-item.
+	Add settings menu.
+	(stkdb-toggle-auto-backtrace): Use command that will work whether or not
+	at debugger top-level.  Revise to take argument from program.
+	(stkdb-toggle-tail-recursion): New function.
+	(stkdb-debug-file-option-string): New function.
+	(stkdb-define-menu-button-item): New function.
+	(stkdb-define-menu-button-send-item): New function.
+	(stkdb-to-t/f): New function.
+	(stkdb-to-f/t): New function.
+	
+	* stkdb.scm (stkdb:keep-tail-recursion!): Remove.
+	(keep-tail-recursion?): Make into local of 'instrument'.
+	(current-function-name): Ditto.
+	(instrument): Put other instrumentation definitions in here. Make
+	keep-tail-recursion? a parameter.  Make current-function-name 
+	a let-bound local. Move original contents to...
+	(instrument-expr): New function containing former contents of 
+	'instrument'.
+	(stkdb:instrument-file): Add 'options' parameter.  Call new 'instrument'
+	function.
+	(stkdb:debug-file): Add options parameter.
+	(stkdb:set-options!): New function.
+	(top-level): Use stkdb:set-options!.
+	(show-all-returns?): New variable, set by stkdb:set-options!.
+	(top-level-val): Show return values if show-all-returns?.
+	
+	
+2003-04-03  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm (stkdb): Suppress prompt when (redundantly) called while
+	debugger is active.
+	(widen-to-line): New function.
+	(top-level): Use widen-to-line on step-over-posn so that we don't
+	hit same breakpoint multiple times without leaving the line.
+	Stop unsuppressing prompt after evaluating expression.
+	
+2003-03-31  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+        * stkdb.el (stkdb-inferior-minor-mode-map): Modify functions used to
+	send commands so they do an (stkdb) first.
+	(scheme-mode-map): Copy over function keys and menu items from 
+	inferior scheme mode, where appropriate.
+	(stkdb-debug-file): Use current buffer's file without asking, if 
+	a Scheme source buffer.  Send (stkdb) command after loading.
+	(force-stkdb-mode): New function.
+	(stkdb-debug-file): Force stkdb mode in the inferior scheme buffer.
+
+	* stkdb.scm (stkdb): Do nothing if already active.
+	(active?): Change name to stkdb:active?
+	(stkdb:active?): Move out from module; define globally.
+
+2003-03-28  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm (top-level): Make 'display' print an acknowledgement.
+
+	* stkdb.el (stkdb-filter-insert): Use comint-output-filter for most
+	functions.
+	(stkdb-display-frame): Change name to stkdb-display-source-posn.
+	(stkdb-display-source-posn): Renamed from stkdb-display frame.
+ 	Add a force-visible argument.
+	(stkdb-toggle-auto-backtrace): New function.  
+	(stkdb-backtrace): New function.
+	(stkdb-inferior-minor-mode-map): Add Backtrace, auto display
+	backtrace, and info locals entries.
+	(stkdb-mode): Remove stkdb-last-frame.
+	(stkdb-insert-trace-line): Use stkdb-make-buffer-visible.
+	(stkdb-make-buffer-visible): New function.
+	(stkdb-locals): New function
+
+
+2003-03-27  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.el: Require scheme and comint.
+	Move scheme-buffer menu items to scheme-mode-map additions, and
+	remove obsolete Emacs version conditionalization.
+	Change names containing "-frame" to "-stack-frame" to prevent
+	confusion with Emacs terminology.
+	Remove some redundant ";;;" comments in favor of doc strings.
+	(stkdb-tmp-target-file): Remove; unused.
+	(stkdb-menu-item): Add new items to END of debugging menu.
+	(stkdb-inferior-minor-mode-map): Change name of menu to "Debugging".
+	Add reset command.
+	(stkdb-scheme-mode-hook): Remove.  Put key definitions elsewhere.
+	(scheme-mode-map): Re-define M-\C-x, C-cC-e, C-cM-e here.
+	Define C-cd, C-x SPC here.
+	Define Debugging menu here.
+	(stkdb-filter): Clean up and add doc string.
+	(stkdb-filter-scan-input): Make proc and stop-frame global, add doc 
+	string.
+	(stkdb-filter-insert): Clean up and add doc string.
+	(stkdb-sentinel): Clean up and add doc string.
+	Use stkdb-erase-previous-marking to cover both arrow and highlighting.
+	(stkdb-display-frame): Add doc string.  Remove no-display argument.
+	(stkdb-debug-file): Improve doc string.  Remove references to
+	stkdb-tmp-target-file. 
+	(stkdb-clear-breakpoint): Improve doc string.
+	(stkdb-clear-all-breakpoints): New function.
+
+2003-03-21  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm: Remove stkdb:func from instrumentation and get it from
+	the source positions.
+	(get-posn): Add function name.
+	(src-func): New function.
+	(stkdb:set-bp-func, stkdb:clear-bps-func): New functions.
+
+	* stkdb.el (stkdb-debug-file): Handle buffer-switching less 
+	irritatingly (don't lose the source buffer).
+
+	* stkdb.scm: Add much internal documentation and 
+	reorder definitions.  
+	Remove asterisks from names of variables.
+	Change annotate -> instrument.
+	(stkdb:load): Remove.
+	(should-stop?): When hit during a 'finish', this is NOT a return.
+	(instrument): Correct name of anonymous lambdas.
+	
+2003-03-20  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* stkdb.scm (top-level): Add *quiet* command (suppresses prompt after
+	subsequent command, for use by Emacs).
+	Add "delete" command.
+	Make command parsing for info and display a bit more robust.
+	Move command processing from stkdb:eval-loop to here.
+	Undo suppress-next-stop? for breakpoints, and indicate when BP
+	hit.
+	(suppress-next-stop?): New definition.
+	(*all-bps*, *next-bp-number*, bp-record-filename,
+	bp-record-line, bp-record-func, bp-record-num, record-bp!, 
+	unrecord-bp!, unrecord-all-bps!, find-bp-record): New functions.
+	(clear-numbered-bp!): New function.
+	(yorn?): New function.
+	(stkdb:report-error): Undo suppress-next-stop? for errors.
+	(stkdb:eval-loop): Move command processing to top-level.
+	(should-stop?): Make this return a symbol indicating a reason to
+	stop.
+	(should-stop-when-returned-to?): Ditto (although not really needed).
+	
+	* stkdb.el: Add "*quiet* " before execution-control commands (step,
+	next, cont, finish, up, down) to suppress stkdb prompts.
+	(stkdb-scheme-mode-hook): New function.  Added to 
+	scheme-mode-hook.
+	(stkdb-mode): Move local key definitions for scheme-mode into hook,
+	where they more properly belong.
+	
+	* pexpr.scm (psd-cddar): New function.
+	(psd-car): Correct format on error call to expect an argument.
+	(psd-cdr): Ditto.
+
+	* stkdb.el: New file (from psd.el).
+	* stkdb.scm: New file.
+	* TODO: New file.
+
+	* doc: Remove all files.
+	* version.scm, runtime.scm, psd.el, psd-slib.scm, primitives.scm,
+	instrum.scm, comint.el, cmuscheme.el, README.psd: Remove

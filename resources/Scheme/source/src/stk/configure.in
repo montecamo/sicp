@@ -1,0 +1,562 @@
+dnl	-*- ksh -*-
+dnl	This file is an input file used by the GNU "autoconf" program to
+dnl	generate the file "configure", which is run during STk installation
+dnl	to configure the system for the local environment.
+
+AC_INIT
+AC_CONFIG_HEADER(config.h)
+AC_PREREQ(2.59)
+
+STK_VERSION=`cat VERSION`; AC_SUBST(STK_VERSION)
+
+AC_MSG_NOTICE([Configuring stk $STK_VERSION])
+
+AC_DEFINE_UNQUOTED(STK_VERSION, ["$STK_VERSION"], [stk release version])
+
+dnl Checks for various programs:
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+AC_PROG_CC_STDC
+AC_SUBST(SHELL)
+
+AC_DEFINE([_GNU_SOURCE], 1,
+    [Define _GNU_SOURCE so that we get all necessary prototypes])
+
+test x"$ac_cv_prog_cc_stdc" = x"no" &&
+    AC_MSG_WARN([stk requires an ANSI C compiler and you don't seem to have one])
+
+AC_CHECK_TOOL(STRIP, strip, :)
+AC_CHECK_TOOL(SED_PROGRAM, sed, :)
+AC_CHECK_TOOL(MKDIR_PROGRAM, mkdir, :)
+AC_CHECK_TOOL(CP, cp, :)
+
+dnl
+dnl Checks for header files that might be missing.
+dnl
+
+dnl Check for basic headers, even those we assume the presence of.
+dnl This is because Autoconf default includes check for STDC_HEADERS,
+dnl HAVE_SYS_TYPES_H, etc. before including them.
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS(sys/types.h sys/stat.h)
+
+dnl Now check for the others.
+
+AC_CHECK_HEADERS(string.h strings.h stdarg.h limits.h unistd.h sys/time.h)
+AC_CHECK_HEADERS(termios.h sys/ioctl.h sys/select.h utime.h sys/utime.h)
+AC_CHECK_HEADERS(stdint.h inttypes.h signal.h setjmp.h pwd.h)
+AC_HEADER_TIME
+
+STK_DIR=${prefix}/lib/stk; AC_SUBST(STK_DIR)
+STK_INSTALL=${STK_DIR}/${STK_VERSION}; AC_SUBST(STK_INSTALL)
+STK_SITE=${STK_DIR}/site-scheme; AC_SUBST(STK_SITE)
+
+# determine the kind of the machine which is running this script
+os=`uname -s`
+version=`uname -r`
+machine=`uname -m`
+
+case $os in
+  CYGWIN32*)
+      machine=win32 ;;
+  CYGWIN_NT*)
+     case $version in
+          1.5.*) version=1.5.X;;
+          1.6.*) version=1.6.X;;
+          1.7.*) version=1.7.X;;
+     esac;;
+  Darwin*)
+     case $machine in
+     	  *ppc*)  machine=ppc ;;
+     	  *86*)   machine=i386 ;;
+     esac;;
+esac
+
+# I hope that compatible ix86 chips (such as K6 or AMD) always return ix386
+case $machine in
+  i?86)   ARCH=I386;;
+  i86*)   ARCH=I386;;
+  sun*)   ARCH=SUN;;
+  alpha*) ARCH=ALPHA;;
+  ?000/*) ARCH=HP;;
+  IP22)   ARCH=MIPS32;;
+  *)      ARCH="UNKNOWN_ARCH";;
+esac
+
+AC_SUBST(ARCH)
+AC_SUBST(LOW)
+
+#############################################################
+###
+###   Adding in the stack configure lines not used.
+###
+#############################################################
+#
+# The library is done with one header file (libstack.h) and two sources files
+# If gcc is available, use the C source file otherwise, use the provided 
+# assembly language source file.
+#
+#ln -s libstack-$ARCH.c libstack.c;
+#
+#LOW=
+#if test -f lowstack-$ARCH.s 
+#then 
+#  ln -s lowstack-$ARCH.s lowstack.s 
+#  LOW=lowstack.o
+#fi
+#
+#echo "Stack library configuration"
+#echo "         Machine type: " $ARCH
+#echo "    Low level support: " $LOW
+#############################################################
+
+#
+# General variables:
+#	DFLGS= the -Dxxx options
+#	EDFLGS= the -Dxxx options (which could be erased if dyn. loading is enabled)
+#	EOBJ= Some extra '.o' to build
+#	ETKOBJ= Some extra '.o' to build (when used with Tk)
+#	MACHINE= something which identifies the machine (hard/OS/machine)
+CFLAGS="$CFLAGS -DSTk_CODE -DSCM_CODE"; AC_SUBST(CFLAGS)
+#DFLGS="-DSTk_CODE -DSCM_CODE"; AC_SUBST(DFLGS)
+EOBJ=""; AC_SUBST(EOBJ)
+ETKOBJ=""; AC_SUBST(ETKOBJ)
+EDFLGS=""; AC_SUBST(EDFLGS)
+FLAVOR="unix"; AC_SUBST(FLAVOR)
+MACHINE=$os-$version-$machine; AC_SUBST(MACHINE)
+
+AC_DEFINE_UNQUOTED(MACHINE, ["$os-$version-$machine"], [Machine Definition])
+
+AC_DEFINE_UNQUOTED(STK_LIB_PATH, ["$prefix/lib/stk/$STK_VERSION"], [Path to stk library])
+
+test "$machine" = win32 && FLAVOR=win
+
+AC_SUBST(VERSION)
+AC_SUBST(machine)
+AC_SUBST(os)
+
+#STKCFLAGS=${CFLAGS-"-O2"}; AC_SUBST(STKCFLAGS)
+CFLAGS="-O2 $CFLAGS"
+
+AC_MSG_CHECKING(for compilation options)
+AC_MSG_RESULT($STKCFLAGS)
+
+STKLDFLAGS=""; AC_SUBST(STKLDFLAGS)
+
+dnl
+dnl Try to figure the system we have
+dnl
+
+AC_MSG_CHECKING(for operating system type)
+case $MACHINE in
+	SunOS-5*)	OS=SUNOS5;;
+	HP*)		OS=HPUX; DFLGS="$DFLGS -Dhpux";;
+	Linux*)		OS=LINUX_ELF;;
+	NetBSD-1*)	OS=NETBSD1;;
+	FreeBSD*)	OS=FREEBSD;;
+	CYGWIN32*)	OS=WIN32; FLAVOR=win; DFLGS="$DFLGS -DCYGWIN32";;
+	CYGWIN_NT*)	OS=CYGWIN; DFLGS="$DFLGS -DCYGWIN32";;
+	Darwin*)	OS=MACOSX CFLAGS="$CFLAGS -m32";;
+	*)		AC_MSG_ERROR("this operating system is not supported") ;;
+esac
+
+# Set the OS flag soon since it can be augmented with Linux
+CFLAGS="-D$OS $CFLAGS"
+#DFLGS="$DFLGS -D$OS"
+AC_MSG_RESULT($OS)
+
+####
+#### X11 stuff
+####
+AC_ISC_POSIX		# to avoid a warning
+AC_PATH_X
+AC_PATH_XTRA
+
+XINCLUDES=""; AC_SUBST(XINCLUDES)
+XLIBSW=""; AC_SUBST(XLIBSW)
+
+test "$x_includes" != "" && XINCLUDES="-I$x_includes"
+test "$x_libraries" != "" && XLIBSW="-L$x_libraries"
+
+XLIBSW="$XLIBSW $X_PRE_LIBS -lX11 $X_EXTRA_LIBS"
+
+dnl
+dnl Find the MP library to use
+dnl
+
+AC_MSG_CHECKING(for multiple precision library)
+AC_ARG_WITH(fgmp, 
+	[  --with-fgmp		Use a free replacement of Gnu MP package],
+	MP=libfgmp, 
+	MP=libgmp)
+AC_MSG_RESULT($MP)
+AC_SUBST(MP)
+
+dnl
+dnl Hash tables
+dnl
+
+AC_MSG_CHECKING(whether to include hash tables support)
+AC_ARG_ENABLE(hash, 
+	[  --enable-hash		Enable hash table support],
+	USE_HASH=$enableval, USE_HASH=yes)
+
+test x"${USE_HASH}" = xyes && (EOBJ="$EOBJ hash.o"; AC_DEFINE([USE_HASH],
+	1, [Enable hash table support]))
+
+AC_MSG_RESULT($USE_HASH)
+
+dnl
+dnl Posix support
+dnl
+
+AC_MSG_CHECKING(whether to include POSIX support)
+AC_ARG_ENABLE(posix, 
+	[  --enable-posix		Enable posix support],
+	USE_POSIX=$enableval, USE_POSIX=yes)
+
+test x"${USE_POSIX}" = xyes && (EOBJ="$EOBJ posix.o"; AC_DEFINE([USE_POSIX],
+	1, [Enable posix support]))
+
+AC_MSG_RESULT($USE_POSIX)
+
+dnl
+dnl Use STklos support
+dnl
+
+AC_MSG_CHECKING(whether to include POSIX support)
+AC_ARG_ENABLE(stklos,
+	[  --enable-stklos		Provide support for STklos], 
+	USE_STKLOS=$enableval, USE_STKLOS=yes)
+
+if test x"${USE_STKLOS}" = xyes ;
+then
+  if test x"${USE_HASH}" != xyes
+  then
+    AC_MSG_ERROR("[hash table support is required for STklos, but you have notconfigured it]")
+  fi
+  AC_DEFINE([USE_STKLOS], 1, [Provide support for STklos])
+fi
+AC_MSG_RESULT($USE_STKLOS)
+
+dnl
+dnl Use Socket support from David Tolpin (dvd@pizza.msk.su)
+dnl
+
+AC_MSG_CHECKING(whether to include socket support)
+AC_ARG_ENABLE(socket, 
+	[  --enable-socket		Provide support for sockets],
+	USE_SOCKET=$enableval, USE_SOCKET=yes)
+
+test x"${USE_SOCKET}" = xyes && (EOBJ="$EOBJ socket.o"; AC_DEFINE([USE_SOCKET],
+	1, [Provide support for sockets]))
+
+AC_MSG_RESULT($USE_SOCKET)
+
+dnl
+dnl Use Regexp support 
+dnl
+
+AC_MSG_CHECKING(whether to include regular expression support)
+AC_ARG_ENABLE(regexp, 
+	[  --enable-regexp		Provide support for regular expressions],
+	USE_REGEXP=$enableval, USE_REGEXP=yes)
+
+test x"${USE_REGEXP}" = xyes && (EOBJ="$EOBJ sregexp.o"; AC_DEFINE([USE_REGEXP],
+	1, [Provide support for regular expressions]))
+
+AC_MSG_RESULT($USE_REGEXP)
+
+dnl
+dnl Use Process support 
+dnl
+
+AC_MSG_CHECKING(whether to include Unix process support)
+AC_ARG_ENABLE(process, 
+	[  --enable-process		Provide support for Unix processes],
+	USE_PROCESS=$enableval, USE_PROCESS=yes)
+
+test x"${USE_PROCESS}" = xyes && (EOBJ="$EOBJ process.o"; AC_DEFINE([USE_PROCESS],
+	1, [Provice support for Unix processes]))
+
+AC_MSG_RESULT($USE_PROCESS)
+
+dnl
+dnl Html support
+dnl
+
+AC_MSG_CHECKING(whether to include HTML support)
+AC_ARG_ENABLE(html, 
+	[  --enable-html			Enable html support],
+	USE_HTML=$enableval, USE_HTML=yes)
+
+test x"${USE_HTML}" = xyes && (EOBJ="$EOBJ html.o"; AC_DEFINE([USE_HTML],
+	1, [Enable html support]))
+
+AC_MSG_RESULT($USE_HTML)
+
+dnl
+dnl BASE64 support
+dnl
+
+AC_MSG_CHECKING(whether to include Base64 support)
+AC_ARG_ENABLE(base64, 
+	[  --enable-base64		Enable Base64 support],
+	USE_BASE64=$enableval, USE_BASE64=yes)
+
+test x"${USE_BASE64}" = xyes && (EOBJ="$EOBJ base64.o"; AC_DEFINE([USE_BASE64],
+	1, [Enable Base64 support]))
+
+AC_MSG_RESULT($USE_BASE64)
+
+dnl
+dnl LOCALE support
+dnl
+
+AC_MSG_CHECKING(whether to include locale support)
+AC_ARG_ENABLE(locale, 
+	[  --enable-locale		Enable locale support],
+	USE_LOCALE=$enableval, USE_LOCALE=yes)
+
+test x"${USE_LOCALE}" = xyes && (EOBJ="$EOBJ locale.o"; AC_DEFINE([USE_LOCALE],
+	1, [Enable locale support]))
+
+AC_MSG_RESULT($USE_LOCALE)
+
+dnl
+dnl Pixmap support
+dnl
+
+AC_MSG_CHECKING(whether to include pixmap image support)
+AC_ARG_ENABLE(pixmap, 
+	[  --enable-pixmap		Enable pixmap images support],
+	USE_PIXMAP=$enableval, USE_PIXMAP=yes)
+
+test x"${USE_PIXMAP}" = xyes && (ETKOBJ="$ETKOBJ pixmap.o"; AC_DEFINE([USE_PIXMAP],
+	1, [Enable pixmap images support]))
+
+AC_MSG_RESULT($USE_PIXMAP)
+
+dnl
+dnl JPEG support
+dnl
+
+AC_MSG_CHECKING(whether to include JPEG images support)
+AC_ARG_ENABLE(jpeg, 
+	[  --enable-jpeg			Enable JPEG images support],
+	USE_JPEG=$enableval, USE_JPEG=yes)
+
+test x"${USE_JPEG}" = xyes && (ETKOBJ="$ETKOBJ jpeg.o"; AC_DEFINE([USE_JPEG],
+	1, [Enable JPEG images support]))
+
+AC_MSG_RESULT($USE_JPEG)
+
+dnl
+dnl Dynamic loading
+dnl
+
+EXTRA_OBJ=""; AC_SUBST(EXTRA_OBJ)
+#LIB_DLD=""; AC_SUBST(LIB_DLD)
+
+AC_MSG_CHECKING(whether to enable dynamic loading)
+AC_ARG_ENABLE(dynload, 
+	[  --enable-dynload		Enable Dynamic loading],
+	USE_DYNLOAD=$enableval, USE_DYNLOAD=yes)
+
+test x"${USE_DYNLOAD}" = xyes && (ETKOBJ="$ETKOBJ jpeg.o"; AC_DEFINE([USE_DYNLOAD],
+	1, [Enable Dynamic loading]))
+
+if  test "${USE_DYNLOAD}" = yes; then
+  for _i_ in $EOBJ $ETKOBJ
+  do 
+    EXTRA_OBJ="$EXTRA_OBJ `basename $_i_ .o`.$SH_SUFFIX"
+  done
+fi
+
+AC_MSG_RESULT($USE_DYNLOAD)
+
+############################################################################
+####
+####  Adding in from the Src Directory. Need to eliminate extra configure
+####
+############################################################################
+
+AC_HAVE_FUNCS(sigaction select)
+AC_CHECK_LIB(dl, dlopen, [LIBS="$LIBS -ldl"])
+LIBS="$LIBS -lm"
+
+#--------------------------------------------------------------------
+# Some system needs extra libraries which are already tested for
+# stk (such as libsocket.a or libnsl.a)
+# I'm unable to test this since I know no machine which need it.
+# Please tell me if I'm wrong
+#--------------------------------------------------------------------
+SNOW_LIBS=""
+AC_CHECK_LIB(socket, socket, [SNOW_LIBS="$SNOW_LIBS -lsocket"])
+AC_CHECK_LIB(nsl, t_accept,   [SNOW_LIBS="$SNOW_LIBS -lnsl"])
+AC_SUBST(SNOW_LIBS)
+
+#--------------------------------------------------------------------
+#	Check for various typedefs and provide substitutes if
+#	they don't exist. Useful for Sony WS(Sony NEWS, NEWSOS 4.2R)
+#	Thanks to Nobuyuki Hikichi  <hikichi@sran340.sra.co.jp>
+#--------------------------------------------------------------------
+#AC_PID_T
+
+SH_CCFLAGS=""; AC_SUBST(SH_CCFLAGS)
+SH_LDFLAGS=""; AC_SUBST(SH_LDFLAGS)
+SH_LOADER=":"; AC_SUBST(SH_LOADER)
+SH_SUFFIX="";  AC_SUBST(SH_SUFFIX)
+#LIB_MALLOC=""; AC_SUBST(LIB_MALLOC)
+
+AC_MSG_CHECKING(for dynamic loading options for $OS)
+
+case $OS in 
+   SUNOS5)
+     SH_CCFLAGS="-K pic"
+     SH_LDFLAGS='-G -z text -h'
+     SH_LOADER="ld"
+     SH_SUFFIX='so';;
+   NETBSD1) 
+     SH_CCFLAGS="-fpic"
+     SH_LDFLAGS="-Bshareable -o"
+     SH_LOADER="ld"
+     SH_SUFFIX='so';;
+   FREEBSD)
+     SH_CCFLAGS="-fpic"
+     SH_LDFLAGS="-shared -o"
+     SH_LOADER="ld"
+#     LIB_MALLOC=""
+     STKLDFLAGS=-rdynamic
+     SH_SUFFIX='so';;
+   LINUX_ELF)
+     SH_CCFLAGS='-fpic'
+     SH_LDFLAGS='-shared -o'
+     SH_LOADER='ld'
+     SH_SUFFIX='so' 
+     # Under ELF, use the -rdynamic option at ld phase
+     STKLDFLAGS=-rdynamic;;
+   CYGWIN)
+     SH_CCFLAGS='-fpic'
+     SH_LDFLAGS='-shared -o'
+     SH_LOADER='ld'
+     SH_SUFFIX='so' 
+     # Under ELF, use the -rdynamic option at ld phase
+     STKLDFLAGS='-dynamic';;
+   MACOSX)
+     SH_CCFLAGS="-dynamic"
+     SH_LDFLAGS="-dynamiclib -o"
+     SH_LOADER="$CC"
+     SH_SUFFIX="dylib" ;;
+   *) AC_MSG_ERROR("don't know how to build shared libraries") ;;
+esac
+
+AC_MSG_RESULT()
+
+#
+# Transform -pic in -fpic if using gcc
+#
+if test ! -z "SH_CCFLAGS" ; then 
+  if test "$CC" = "gcc" -a "$SH_CCFLAGS" != "" ; then
+    SH_CCFLAGS="-fpic"
+  fi
+fi
+
+# Set final DFLGS
+DFLGS="$DFLGS $EDFLGS"
+
+####
+#### Produce Makefiles
+####
+
+AC_CONFIG_FILES([Makefile Extensions/Makefile Extensions/stk-genmake Src/Makefile \
+	       Lib/Makefile STklos/Makefile Demos/Makefile Help/Makefile \
+	       Doc/Makefile Doc/Manual/Makefile Utils/STk.spec Stack/Makefile \
+	       Stack/libstack.h])
+
+AC_OUTPUT
+
+AC_MSG_RESULT()
+AC_MSG_RESULT([    stk ${STK_VERSION} configuration successful])
+AC_MSG_RESULT()
+
+##############################################################################
+####
+#### Configuring Sub-directories
+####
+
+echo "---------------------------------------------------------------"
+
+echo "configure: configuring Gmp directory";
+(cd Gmp; CC=$CC CFLAGS=$CFLAGS MACH=$MACH /bin/sh ./configure)
+
+echo "---------------------------------------------------------------"
+
+echo "configure: configuring Tcl directory";
+(cd Tcl; CC=$CC CFLAGS=$CFLAGS /bin/sh ./configure --prefix=$prefix)
+
+echo "---------------------------------------------------------------"
+
+echo "configure: configuring Tk directory";
+
+if test "$x_includes" != "" -a "$x_libraries" != ""
+then
+  (cd Tk/$FLAVOR; CC=$CC /bin/sh ./configure $FLAVOR --x-includes=$x_includes \
+				 --x-libraries=$x_libraries --prefix=$prefix)
+else
+  (cd Tk/$FLAVOR; CC=$CC CFLAGS=$CFLAGS /bin/sh ./configure $FLAVOR)
+fi
+echo "---------------------------------------------------------------"
+
+###
+### Some things to terminate
+###
+
+# FreeBsd seems to use an old syntax for inclusion in Makefile. Patch
+# Makefiles acordingly 
+
+case $OS in
+   FREEBSD) for i in */Makefile
+	    do
+		sed <$i > X$$X 's%include ../config.make%.include "../config.make"%'
+		mv X$$X $i
+	    done;;
+   *)       ;;
+esac
+
+###
+### SUMMARY
+###
+
+echo " "
+echo " "
+echo "SUMMARY"
+echo "*******"
+echo "   Your system is " $OS
+echo "   C compiler is:" $CC
+echo "   Compilation options:" $STKCFLAGS
+echo "   Dynamic loading enabled:" $USE_DYNLOAD
+echo "   X11 libraries directory:" $x_libraries
+echo "   X11 headers directory:"   $x_includes
+echo " "
+echo "   You have chosen the following options"
+echo "		Multiple precision library:     " $MP
+echo "		Hash tables support:            " $USE_HASH
+echo "		Posix support:                  " $USE_POSIX
+echo "		STklos support:                 " $USE_STKLOS
+echo "		Socket support:                 " $USE_SOCKET
+echo "		Regexp support:                 " $USE_REGEXP
+echo "		Process support:                " $USE_PROCESS
+echo "		Html support:                   " $USE_HTML
+echo "		Pixmap Images support:          " $USE_PIXMAP
+echo "		Jpeg Images support:            " $USE_JPEG
+echo "		Base64 support:                 " $USE_BASE64
+echo "		Locale support:                 " $USE_LOCALE
+
+echo " "
+echo "If this is correct, you can just type 'make' now at your shell prompt."
+echo "Otherwise, rerun configure with proper options (see the README file for"
+echo "a description of STk configure options.)"
+echo " "

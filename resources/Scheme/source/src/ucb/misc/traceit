@@ -1,0 +1,2 @@
+; Load this to get a handle on whatever turtlegraphics bugs are ailing you.
+(trace delete-canvas! erase-canvas! create-canvas! showing-canvas! canvas-foreground-color set-canvas-foreground-color canvas-background-color set-canvas-background-color canvas-really-draw-line! canvas-draw-line! clearscreen internal-fd internal-rt internal-setxy internal-setheading showturtle hideturtle forward right setxy setheading pendown penerase setpencolor show-turtle)

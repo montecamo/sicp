@@ -1,0 +1,220 @@
+2004-02-06  Paul Hilfinger  <hilfingr@tully.CS.Berkeley.EDU>
+
+          * Src/toplevel.c: Add stkvers.h dependency.
+          * Src/stklos.c: Ditto.
+          * Src/slib.c: Ditto.
+          * Src/argv.c: Ditto.
+          * Src/stk.h: Remove stkvers.h include and move it to files
+	  that really need it to prevent over-recompilation.
+
+          * Src/number.c (FIRSTARG): New macro; evaluates differentially
+            depending on whether arguments are to eval or apply.
+          (Compare): Use FIRSTARG.
+          (STk_max): Ditto.
+          (STk_min): Ditto.
+          (STk_plus): Ditto.
+          (STk_times): Ditto.
+          (STk_difference): Ditto. Correct problem with (apply - '(x 5)).
+          (STk_division): Ditto.
+          (STk_gcd): Ditto.
+          (STk_lcm): Ditto.
+
+          * brg/win-rebuild.txt: Update STK_VERSION.
+
+2004-01-12  Nathan Hunsperger <njh@EECS.Berkeley.EDU>
+
+	* brg/build: Change '/bin/test' to 'test'.  Many distros of Linux
+	do no have a /bin/test (others no /usr/bin/test), so rely on
+	user's path.
+
+	* brg/STk.spec: Change release number for RPMs
+
+2003-11-26  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* configure.in: Don't change Src/stkvers.h unnecessarily.  Correct
+	second echo to stkvers.h to append rather than overwrite.
+	* configure: Ditto.
+
+	* Lib/pp.stk (*pp:fit?*): Correct handling of 0-length vectors.
+	(*pp:print-vector*): Ditto.
+
+2003-11-25  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/slib2d5/record.scm (vector-fill!): Correct parameter name.
+
+2003-11-13  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* VERSION: new file.
+	
+	* configure.in: Use VERSION as the source of the version number,
+	rather than building it into the script.
+
+	* Stkdb/stkdb.scm.in (stk-debugger): Correct spelling of msg=>mesg
+	in stkdb:set-bp!.
+
+2003-11-09  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Stkdb/stkdb.scm.in (stk-debugger): Save input port on each entry
+	to stkdb and use it for all input, rather than (current-input-port).
+
+	* brg/berkeley.scm (error): If the first argument looks like a format,
+	use the standard STk error procedure.
+
+	* Lib/trace.stk (trace-primitive, trace-closure): 
+	Change ~S to ~W in formats so that we can trace	things that have 
+	circular structures as parameters.
+
+2003-11-02  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Src/Makefile.in: Add dependencies and dependency-generation.
+
+	* brg/obj.scm: Replace uses of 'word' procedure.
+
+2003-10-05  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/modeler.stk: Modify foreground color in console window.
+
+2003-09-24  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Src/port.c: Don't count '\r' and '\f' characters as indicating
+	object files.
+
+2003-09-18  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/bkscminst (SITESCHEMEDIR): Correct installation of modeler.
+
+2003-09-12  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	Change ksh => sh throughout.
+	* brg/build: Remove the link-farm set up; now part of the distribution.
+
+2003-09-01  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/modeler.stk: Only add built-in procedures if they actually
+	exist.  Set defaults for global parameters.
+	* brg/cs3-modeler.stk: Use "require" to include modeler.stk.
+	* brg/cs3s-modeler.stk: Ditto.
+
+	* brk/bkscminst: Install modeler.stk also.
+	
+2003-08-01  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Src/eval.c (STk_eval): Use STk_liststar2 when using apply on
+	a closure.  Otherwise, local defines in the body of the called
+	closure get destructively added to the end of the last argument
+	passed to apply.
+	(STk_apply): Ditto.
+
+	* Src/list.c (STk_append): Add STk_liststar2, which does a 
+	one-level copy of its last argument.
+
+2003-07-25  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/simply.scm: Move definition of whoops up.
+
+2003-07-23  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/berkeley.scm: Require "posix"; don't call %init-posix directly!
+	* brg/explorin.scm: Ditto.
+	
+2003-07-22  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/simply.scm: New file containing Logo-style sentence/word
+	stuff previously in berkeley.scm.
+	* brg/berkeley.scm: Move Simply Scheme definitions to simply.scm.
+	Move turtle graphics stuff to turtle-grfx.scm.
+	* brg/turtle-grfx.scm: Add new background definitions.
+	* brg/bkscminst: Reflect changes to berkeley.scm, turtle-grfx.scm,
+	simply.scm.  Remove Simply Scheme stuff from CS61A.
+	* brg/win-bkscminst.sh: Ditto.
+	
+2003-07-10  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/userinit.stk: Remove Berkeley-specific greeting message.
+
+	* configure: Update version number to reflect UCB mods.
+	
+2003-05-05  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Src/slib.c (STk_my_time): Just in case, use double earlier to avoid
+	truncation.
+	(TIC): Define to use CLK_TCK if available.
+	(STk_time): Correct format to expect double-precision.
+
+2003-04-18  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Src/primitives.c: Add %clear-recursive-error primitive.
+
+	* Src/error.c (STk_clear_recursive_error): New function.
+	* Src/stk.h (STk_clear_recursive_error): New function.
+	
+
+2003-04-16  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/berkeley.scm (read): Remove.
+
+2003-04-13  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* brg/turtle-grfx.scm: Add (provide...) clause.
+	* brg/explorin.scm: Ditto.
+	* brg/cs3-modeler.stk: Ditto.
+	* brg/cs3s-modeler.stk: Ditto.
+	* brg/obj.scm: Ditto.
+	* brg/berkeley.scm: Ditto.
+	
+	* brg/userinit.stk: New file.
+	* brg/class-load.stk: New file.
+	
+	* Makefile.in (clean-before): Don't ask to clean directory.
+
+	* brg/bkscminst: Copy from userinit.stk and class-load.stk rather than
+	building here.
+	* brg/win-bkscminst.sh: Ditto.
+	
+	* brg/obj.scm: Remove use of member? and stick with standard Scheme.
+	
+	* brg/berkeley.scm: Bring up to date with current version.
+
+2003-04-11  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	Add Berkeley local changes.
+	* Lib/init.stk: Apply init.stk.patch.
+	* Demos/Makefile: Remove bogus link to stklos-widgets.
+	* slib2d5: Add directory and newer slib version.
+	* slib2d5/STk.init: defmacro is defined.
+	* brg/slibinst: Use unpacked and patched directory directly.
+	* brg/envdinst: Ditto.
+	* brg/win-envdinst.sh: Ditto.
+	* brg/win-slibinst.sh: Ditto.
+	* brg/build: Don't need to patch stk.init any more.
+	* brg/win-inst.sh: Ditto.
+	* brg/build: Don't patch init.stk.
+	* brg/bkscminst: Change directory for cs9d.
+	* brg/notes: Update.
+	
+	* brg/STk.spec.save: Delete.
+	* brg/win-patchinit.sh: Delete.
+	* brg/patchinit: Delete.
+	* brg/init.stk.patch: Delete.
+	* brg/slib2c7.zip: Delete.
+	
+2003-04-07  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Src/signal.c (STk_handle_sigint_signal): Prevent infinite loop on
+	^C when user has SIGINT handlers.
+
+2003-03-20  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Src/signal.c (STk_init_signal): Give ALL signals default handling,
+	as the documentation says.
+
+2003-03-14  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Src/eval.c (STk_eval): Update the environment data in infos to 
+	give a more meaningful stack trace (for the environments, if not for
+	the expressions).
+
+2003-03-06  Paul Hilfinger  <Hilfinger@CS.Berkeley.EDU>
+
+	* Lib/STk.init (*features*): defmacro IS a feature; it is defined
+	later in STk.init.

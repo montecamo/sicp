@@ -1,0 +1,258 @@
+What are all these files?
+-------------------------
+
+This is a list of files in the brg directory with some descriptions of each.
+If you want to rebuild stk, see below (you want to use the 'build' script.)
+
+STk.spec 	- RPM spec file used for building Linux packages.
+alarm.scm 	- example of how to do ALARM in stk
+alarmwin.scm 	- similar to alarm.scm, for windows
+capture 	- turns a text file (berkeley.msg) into scheme code to display it
+collect.scm 	- modified version for stk macro system
+mac-rebuild.txt	- MacOSX build instructions
+mklinkfarm 	- script to make links listed in linkfarm file
+notes 		- this file
+reinstall 	- script to partially reinstall stk when debugging it
+traceit 	- Scheme code to enable verbose tracing of turtlegraphics functions
+tsc-test 	- expect script used to test transcript-on/-off
+win-bkscminst.sh- script used to install berkeley.scm under windows
+win-envdinst.sh - script used to install envdraw under windows
+win-inst.sh 	- script used instead of 'build' under windows
+win-rebuild.txt - instructions for rebuilding stk under windows
+win-slibinst.sh - script used to install slib under windows
+win-stkdbinst.sh- script used to install stkdb under windows
+
+Notes on STk
+------------
+
+ - To build & install stk under Unix, use the 'build' script. cd to the top
+   level directory of the stk distribution, and say
+
+      ./brg/build DIRNAME
+
+   where DIRNAME is the directory you want to install stk in.
+
+   If you don't want to install stk (build only), edit brg/build and put
+   'exit 0' before gmake install.
+
+   If you want to install stk in the brg/install directory (for
+   testing purposes) leave off the DIRNAME.
+
+   For Windows instructions, please see win-rebuild.txt.
+   For Mac instructions, please see mac-rebuild.txt.
+
+ - The berkeley.scm in this directory is THE master copy; if you edit it
+   and check it in, it will be used in making distributions, etc.
+
+ - If you need to have code run BEFORE berkeley.scm, it should go
+   in userinit.stk, NOT init.stk. You have to be careful doing this,
+   though. The way to accomplish this is:
+
+   1. figure out why you need to edit userinit.stk:
+      if it's for berkeley.scm reasons, look at bkscminst and win-bkscminst.sh
+      if it's for envdraw, look at envdinst and win-envdinst.sh
+      if it's for SLIB, look at slibinst and win-slibinst.sh
+
+   2. edit the correct inst script as determined in step 1, and cause
+      the scheme commands in question to be appended to  
+      ${LIBDIR}/${VERSION}/STk/userinit.stk (unix scripts)
+      and "${LIBDIR}/STk/userinit.stk" (windows scripts) (DON'T FORGET QUOTES!)
+
+   3. do a FULL BUILD AND INSTALL and TEST STK AND ENVDRAW on BOTH WINDOWS
+      AND UNIX before you believe that the changes are okay!
+
+ - INSTALLROOT/lib/stk/4.0.1/STk/init.stk is the master initialization file.
+   (But now we will use userinit.stk, our specially hax0red version, so
+   that we get all the interesting modules.)
+
+- simply.scm must be loaded before modeler.stk or else the modeler will break. Also
+  since there are conflicting definitions in explorin and simply, the precedence of which
+  you load these two files does matter. If you want simply's definitions then load
+  simply.scm last (in win-bkscminst and bkscminst) so that simply's functions override
+  any previous declarations. 
+
+ - The adventure game has been tested.
+
+/* - Here is how to start EnvDraw, until we get it integrated into the
+ *   build process:
+ * #!/bin/sh
+ * # EnvDraw STk launcher
+ * 
+ * INSTHOME=/tmp/stk/brg/install
+ * STK_LIBRARY=$INSTHOME/lib/stk/4.0.1/
+ * ENVDRAW_LIBRARY_PATH=$INSTHOME/lib/stk/site-scheme/envdraw/
+ * STK_LOAD_PATH=$STK_LIBRARY/bin:$ENVDRAW_LIBRARY_PATH/lib/
+ * SCHEME_LIBRARY_PATH=/tmp/stk/brg/install/lib/stk/slib/
+ * export STK_LIBRARY
+ * export STK_LOAD_PATH
+ * export ENVDRAW_LIBRARY_PATH
+ * export SCHEME_LIBRARY_PATH
+ * 
+ * if [ "$DISPLAY" = "" ] ;then
+ *   echo You must run STk while running X.
+ *   exit 1
+ * else
+ *   exec $INSTHOME/bin/stk -name stk -l stk-init $*
+ * fi
+ * -- This has been replaced by the INSTALLROOT/bin/envdraw shell script.
+ */
+
+To Do
+-----
+
+/* Bug: (apply + '((+ 2 3) 4 5)) does not give an error in envdraw or stk.
+ *  (+ '(+ 2 3) 4 5) does not give an error in stk.
+ * Status: Author knows about it, workaround installed.
+ */
+
+/* Bug: envdraw barfs on additions - reported by David Chen
+ * on Wed, 26 Jul 2000 00:54:03 -0700 (PDT). To reproduce:
+ *   quasar% envdraw
+ *   Welcome to the STk interpreter version 4.0.1 [SunOS-5.7-sun4]
+ *   Copyright (c) 1993-1999 Erick Gallesio - I3S - CNRS / ESSI <eg@unice.fr>
+ *   Modifications by UCB EECS Instructional & Electronics Support
+ *   Questions, comments or bug reports to <root@cory.EECS.Berkeley.EDU>.
+ *   STk> (envdraw)
+ *   EnvDraw> (define (make-adder n) (lambda (x) (+ x n)))
+ *   make-adder
+ *   EnvDraw> ((make-adder 3) 5)
+ *   *** Error: Unknown procedure type -- apply (external-binding + #[<generic>
+ *   new+ (5)])
+ *   In context:
+ *   EnvDraw> 
+ * Status: work-around in stk/brg/envdraw-patch (change to
+ * primitive-procedure?)
+ */
+
+/* Bug: you get a background error under win98 when attempting to
+ *  save customizations to the console.  reported by: "Kevin Tom"
+ *  <ktom524@hotmail.com> on: Tue, 25 Jul 2000 20:02:55 PDT
+ * Status: this is because HOME env var is not usually set under
+ *  windows. stk now sets HOME env var under windows if it is not set.
+ *  see stk/Src/wstk.c.
+ */
+
+/* 
+ * - Need to implement MAKE-ARBITER, TRY-ARBITER, and RELEASE-ARBITER from SCM.
+ * DONE - as of May 11.
+ */
+
+/* - Need to convert uses of SCM's PROCEDURE->MACRO in berkeley.scm to
+ *  use DEFMACRO.
+ * PROCEDURE->MACRO has been squished, as of May 15.
+ */
+
+/* - Why is berkeley.scm full of (if (scm?) (eval '(define foo ...))) ?
+ * because you can't define inside of if, otherwise. 
+ */
+
+/* Implement turtlegraphics.
+ * Done -as of May 17
+ */
+
+/* 
+ * Fix EnvDraw.
+ * + Get it to start without having to have two separate installations of stk.
+ *   - There is some weird interaction between berkeley.scm or SLIB and the
+ *     envdraw startup process which causes an infinite regress on ERROR,
+ *     resulting in a core dump.
+ * + Why does it divide by zero (CANVAS_Y_SCROLLINC) when it starts?
+ *   - Maybe we need to fix the interface to the Tk classes.
+ * -- Envdraw works now, or at least it seems to work about as well as it
+ * used to, Fri May 26 13:48:21 PDT 2000
+ * There is a weird bug with (define x (let ((y <procedure-invocation>...)))
+ * which didn't work in old envdraw either, apparently. This should be the
+ * envdraw maintainers' problem...
+ */
+
+/*    - FORCE issues [08/Nov/2000] addressed in current berkeley.scm] */
+
+/*    - and string->symbol ":" should be eq? to ':
+ * ----------------------------------------------------------------------------
+ * The problem is that (string->symbol ":") produces a symbol that's not
+ * EQ? to ': even though it does the right thing for other punctuation
+ * characters.  Colon is in the set of "extended alphabetic characters" that
+ * are supposed to behave just like letters, so this really is a bug.
+ * ------- start of forwarded message -------
+ * if i type (eq? (first ':foo) ':), i think i'm soppused to get #t.
+ * i do in SCM, but not in STk. is it a bug or have i missed anything?
+ * ----------------------------------------------------------------------------
+ * [04/Dec/2000] Addressed in current berkeley.scm]
+ */
+
+/*    - and squares bug:
+ * ----------------------------------------------------------------------------
+ * STk> (load "hw1.scm")
+ * STk> (squares '(2 3 4 5)))
+ * Segmentation Fault
+ * quasar% quasar% Too many )'s
+ * quasar%
+ * ---Following is a copy of my "hw1.scm" file:
+ * (define (squares sntnc)
+ *    (if (empty? sntnc)
+ *        sntnc
+ *        (sentence (square (first sntnc)) (squares sntnc))))
+ * (define (square wrd)
+ *    (* wrd wrd))
+ * ----------------------------------------------------------------------------
+ * [04/Dec/2000] This is not a new bug -- it's a stack overflow, and we can't
+ * really fix it.
+ */
+
+ /* - Dragging the mouse over an expression should have no effect
+  *   on the selection.  Set the selection based on the initial
+  *   mouse click or perhaps at the place where the mouse-up happened.
+  *  In the Mac version, dragging *does* have an effect, and selections
+  *  (I think) *can* span lines, but after the user releases the mouse,
+  *  the selection is extended to the closest enclosing complete expression.
+  *  So if the window contains (+ (* 2 3) 4) and the user selects "2 3" then
+  *  the selection is extended to (* 2 3).  If the user selects "2" there is
+  *  no extension, because "2" is a complete expression.
+  *  [21/Jan/2002] I think I have successfully disabled the dragging
+  *   actions.
+  */
+
+ - Selection should be of a single Scheme expression.
+   need a test case
+
+ /* - An error message was generated in the Stk window when quitting
+  *   the Replacement Modeler window if a new font had been set in
+  *   the Replacement Modeler window (using View/Change Font).
+  * [21/Jan/2002] This has been worked around by removing the View/Change Font
+  * menu item and replacing it with a Font menu with only a few choices.
+  */
+
+ /* - 'unbounded' errors should pop up an explanation instead of "error".
+  *  The experimental Modeler, when modeling ((lambda (x) (* x x)) 5) and
+  *  after clicking on the (* x x) and hitting return, produces three
+  *  lines of output:
+  *        x unbound
+  *        x unbound
+  *        (lambda (x) (* error error))
+  *  or words to that effect.  The Mac version puts up a dialog box merely
+  *  informing the user that x is unbound.  This seems preferable.  In
+  *  particular, I don't think we want error messages cluttering up the
+  *  Modeler window.
+  *  Implemented. [21/Jan/2002]
+  */
+
+ - Each line in the Modeler window should result from evaluating
+   part or all of the expression in the immediately preceding line.
+   Thus if you hit delete to back up in the display, or you select
+   something in an earlier line and hit return or enter, all the
+   lines in between should disappear.
+
+ /* > it had all the selection bugs we found then, and also had the
+  * > following problem:
+  * >   (model (map car '((a b) (c d))))
+  * > Hit return, giving
+  * >   (list (car '(a b)) (car '(c d)))
+  * > Select the first car expression and hit enter, giving
+  * >   (list a (car '(c d)))
+  * > Select the whole expression and hit return, giving an "a unbound" error.
+  * [21/Jan/2002]
+  * Fixed by getting rid of the unquote-expr stuff (where did that idea
+  * come from? presumably, before the use of pp)
+  */
+
+$Id: notes,v 1.22 2004/09/03 02:51:49 willchu Exp $

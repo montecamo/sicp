@@ -1,0 +1,55 @@
+		    +----------------------------+
+		    | STk 4.0 Installation notes |
+		    +----------------------------+
+
+
+** This is the Windows INSTALL file. For Unix platform, please look at the 
+** INSTALL file
+
+
+INSTALLATION NOTES
+------------------
+
+STk 4.0 has been compiled on Win32 using the VC 5.0 compiler. Files 
+necessary for compiling it are in the Win32 directory.
+
+Since, I know nearly nothing on this environment, please, tell me how to make 
+the distribution more convenient (I know it is not ;^).
+
+One the package is compiled, you have to install it (you cannot test
+it without installing it). This can be done by using the INSTALL.BAT
+script in the main directory. Give to this script the directory where
+you want to install STk. For instance:
+
+	C:>   install C:\STk
+
+will install all the necessary files in the C:\STk directory.
+
+
+STk doesn't use the registry mechanism, so de-installing it just
+consists in deleting the installation directory.
+
+
+
+WIN32 BINARY RELEASE
+--------------------
+
+Win32 binary release are available from http://kaolin.unice.fr/STk.
+
+
+HELP NEEDED
+-----------
+
+As I said before, I'm far from an expert on the Win32 environment. In
+particular, I know absolutely nothing about DLL creation, compiler
+environment or common customs in this environment. Any help on these
+topic (or any topic btw :-) is welcome.
+
+		Erick Gallesio 
+
+
+
+
+
+
+

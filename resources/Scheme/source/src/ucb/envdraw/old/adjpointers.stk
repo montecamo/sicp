@@ -1,0 +1,89 @@
+;; -*-Mode: Scheme;-*-
+;;
+;; Copyright (C) 1995 Josh MacDonald <jmacd@po.EECS.Berkeley.EDU>
+;;
+;; Permission to use, copy, and/or distribute this software and its
+;; documentation for any purpose and without fee is hereby granted, provided
+;; that both the above copyright notice and this permission notice appear in
+;; all copies and derived works.  Fees for distribution or use of this
+;; software or derived works may only be charged with express written
+;; permission of the copyright holder.
+;; This software is provided ``as is'' without express or implied warranty.
+;;
+;; $Id: adjpointers.stk,v 1.1 2003/12/19 22:57:37 willchu Exp $
+;; $ProjectHeader: stk ucb2.29 Thu, 11 Sep 2003 14:07:59 -0700 hilfingr $
+;;
+
+(require "placement")
+
+(unless (provided? "adjpointers")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                        POINTER ADJUSTMENT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; What this algorithm does is construct a graph that represents the free
+;; space between all the objects on the canvas.  Continuing with the city
+;; block methaphor, this is like finding the (minimum) set of streets
+;; which can connect all the objects at their corners.
+
+;; Pseudocode:
+
+;; 1.  begin with a ordered set of segments in either axis of the plane.
+;; 2.  scan the points, there are several possible configurations at each
+;;     segment.
+;;     a.  The segment is covered by another object, and can be ignored.
+;;     b.  The segment ends a closed region, in which case it may begin a
+;;         new open region which is either already bounded on either end
+;;         or not.  This leaves for four possibilities, since either end
+;;         may or may not be covered.
+;;     c.  The segment ends an open region, in which case, again, either
+;;         end may be covered by objects on either end, leaving four more
+;;         possibilities.
+;;     At each stage, the uncovered area is noted so that an orthogonal
+;;     graph may be created where there is at most one line separating any
+;;     two neighboring objects.  The case where there is zero separators will
+;;     occur when the items overlap.
+
+(define-class graph-node ()
+  ((x :getter x-coord  :init-keyword :x)
+   (y :getter y-coord  :init-keyword :y)
+   (e :getter edges-of :initform '())))
+
+(define-class graph-edge ()
+  ((u :getter :vertex-u-of :init-keyword :u)
+   (v :getter :vertex-v-of :init-keyword :v)))
+
+;; first a naively implemented class to greedily represent active points
+;; in a sweep along one axis.  When first created it consists of two
+;; endpoints at opposite (infinite) ends of the axis.  This is done with
+;; (CREATE-EMPTY-SWEEP).  A section of the sweep may be covered with a
+;; call to (COVER-SWEEP-SECTION sweep axispoint low high).  If the
+;; insertion of a section causes a region of free space to be eliminated,
+;; COVER-SWEEP-SECTION returns the line segment that was forced into
+;; creation.  axispoints must be presented in increasing order.  A section
+;; may be uncovered with (UNCOVER-SWEEP-SECTION axispoint low high).
+;; The sweep will keep track of the depth of cover at any particular point.
+
+(define (uncover-sweep-section axispoint low high) ())
+
+(define MAX-OFFSET-DISTANCE 30)
+(define MIN-OFFSET-DISTANCE 5)
+
+(define-class <sweep> ()
+  ((segment :getter segment-of :initform '())))
+
+(define (create-empty-sweep)
+  (make <sweep>))
+
+;; (define (cover-sweep-section sweep axis high low)
+;;   (let loop ((segment (segment-of sweep)))
+;;     (if ())))
+
+
+
+
+
+(provide "adjpointers")
+
+)

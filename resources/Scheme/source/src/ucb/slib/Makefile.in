@@ -1,0 +1,37 @@
+PREFIX		= @prefix@
+LIBDIR		= ${PREFIX}/lib/stk
+BINDIR		= ${PREFIX}/bin
+VERSION		= `${BINDIR}/stk -version`
+
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+
+UNZIP_PROGRAM	= @UNZIP_PROGRAM@
+SED_PROGRAM	= @SED_PROGRAM@
+
+SLIBVER		= 2d5
+
+SLIBARCHIVE	= slib${SLIBVER}.zip
+
+STKLIBDIR	= ${LIBDIR}/${VERSION}/STk
+
+all:
+
+install:
+	@echo "Unpacking ${SLIB_SRC} into ${LIBDIR}"
+	${UNZIP_PROGRAM} -o -q ${SLIBARCHIVE} -d ${LIBDIR}
+
+	@echo "Modifying STk.init and installing"
+
+	@${SED_PROGRAM} \
+	-e "/implementation-vicinity/s@\"[^\"]*\"@\"${LIBDIR}/${VERSION}/\"@" \
+	-e "s@/usr/local/lib/slib/@${LIBDIR}/slib/@" \
+	${LIBDIR}/slib/STk.init > ${STKLIBDIR}/STk.init
+	@chmod 644 ${STKLIBDIR}/STk.init
+
+	${INSTALL_DATA} ${STKLIBDIR}/STk.init ${LIBDIR}/slib/STk.init
+
+clean:
+
+distclean: clean
+	rm -rf Makefile *~

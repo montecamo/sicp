@@ -1,0 +1,69 @@
+#
+# Makefile for the Demos directory
+#
+#  Copyright © 1993-1999 Erick Gallesio - I3S-CNRS/ESSI <eg@unice.fr>
+#
+# Permission to use, copy, modify, distribute,and license this
+# software and its documentation for any purpose is hereby granted,
+# provided that existing copyright notices are retained in all
+# copies and that this notice is included verbatim in any
+# distributions.  No written agreement, license, or royalty fee is
+# required for any of the authorized uses.
+# This software is provided ``AS IS'' without express or implied
+# warranty.
+#
+# Last file update: 13-Sep-1999 18:11 (eg)
+#
+
+BINDIR		= @prefix@/bin
+STK_DIR		= @STK_DIR@
+DEMODIR		= @prefix@/share/stk/Demos
+
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@
+INSTALL_SCRIPT	= @INSTALL_SCRIPT@
+
+MKDIR		= @MKDIR_PROGRAM@
+MKDIR_INST	= ${MKDIR} -m 755
+
+what:
+	@echo "Type make install to install demos"
+
+install:
+	-if [ ! -d $(DEMODIR) ] ; then ${MKDIR_INST} -p $(DEMODIR); fi
+
+	for i in *.stk *.stklos Widget/*.stklos *.html; \
+	do \
+	  j=`basename $$i`; \
+	  sed -e 's=/usr/local/lib/stk=$(STK_DIR)=' \
+	      -e 's=/usr/local/bin=$(BINDIR)=' $$i > $(DEMODIR)/$$j;\
+	done
+
+	for i in *.stk *.stklos *.html; \
+	do \
+	  chmod 0755 $(DEMODIR)/`basename $$i`; \
+	done
+
+	@test -d $(DEMODIR)/Html-Demos || ${MKDIR_INST} $(DEMODIR)/Html-Demos
+
+	for i in Html-Demos/*.html; do ${INSTALL_DATA} $$i $(DEMODIR)/Html-Demos; done
+
+	@test -d $(DEMODIR)/Html-Demos/Images || ${MKDIR_INST} $(DEMODIR)/Html-Demos/Images
+
+	for i in Html-Demos/Images/*.gif; do ${INSTALL_DATA} $$i $(DEMODIR)/Html-Demos/Images; done
+
+	-if [ ! -d $(DEMODIR)lib ] ; then ${MKDIR_INST} -p $(DEMODIR)/lib; fi
+
+	for i in ../Contrib/STk-wtour/lib/*.xbm; do ${INSTALL_DATA} $$i $(DEMODIR)/lib; done
+
+	-if [ ! -d $(DEMODIR)/lessons ] ; then ${MKDIR_INST} -p $(DEMODIR)/lessons; fi
+
+	for i in ../Contrib/STk-wtour/lessons/*.stk; do ${INSTALL_DATA} $$i $(DEMODIR)/lessons; done
+
+	${INSTALL_DATA} ../Contrib/STk-wtour/lessons/index $(DEMODIR)/lessons
+
+install.libs:
+
+distclean:
+	rm -rf Makefile
