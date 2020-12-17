@@ -1,0 +1,96 @@
+okay
+STk> (load "pigl.scm")
+okay
+STk> (pigl 'kek)
+ekkay
+STk> (pigl 'kk)
+*** Interrupt ***
+STk> *** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+*** Interrupt ***
+
+
+(_ 23
+)
+*** Error:
+    unbound variable: _
+Current eval stack:
+__________________
+  0    (_ 23)
+STk> (+ 2 3)
+5
+STk> (pigl 'tim)
+imtay
+STk> (trace pigl)
+okay
+STk> (pigl 'scheme)
+.. -> pigl with wd = scheme
+.... -> pigl with wd = chemes
+...... -> pigl with wd = hemesc
+........ -> pigl with wd = emesch
+........ <- pigl returns emeschay
+...... <- pigl returns emeschay
+.... <- pigl returns emeschay
+.. <- pigl returns emeschay
+emeschay
+STk> (trace vowel)
+*** Error:
+    set!: variable not defined: vowel
+Current eval stack:
+__________________
+  0    (set! vowel ((with-module trace trace-symbol) (quote vowel) vowel (the-environment)))
+STk> (trace vowel?)
+okay
+STk> (pigl 'scheme)
+.. -> pigl with wd = scheme
+.... -> vowel? with letter = s
+.... <- vowel? returns #f
+.... -> pigl with wd = chemes
+...... -> vowel? with letter = c
+...... <- vowel? returns #f
+...... -> pigl with wd = hemesc
+........ -> vowel? with letter = h
+........ <- vowel? returns #f
+........ -> pigl with wd = emesch
+.......... -> vowel? with letter = e
+.......... <- vowel? returns #t
+........ <- pigl returns emeschay
+...... <- pigl returns emeschay
+.... <- pigl returns emeschay
+.. <- pigl returns emeschay
+emeschay
+STk> lpr
+
+*** Error:
+    unbound variable: lpr
+Current eval stack:
+__________________
+  0    lpr
+STk> lpr
+*** Error:
+    unbound variable: lpr
+Current eval stack:
+__________________
+  0    lpr
+STk> (lpr)
+*** Error:
+    unbound variable: lpr
+Current eval stack:
+__________________
+  0    (lpr)
+STk> (1pr)
+*** Error:
+    unbound variable: 1pr
+Current eval stack:
+__________________
+  0    (1pr)
+STk> *** Interrupt ***
