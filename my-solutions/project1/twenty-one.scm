@@ -41,36 +41,39 @@
       (move-card deck '() (random size)) ))
   (shuffle (make-ordered-deck) 52) )
 
+(define (picture-card? card)
+  (member? (first card) '(j q k)))
+(define (ace-card? card)
+  (equal? (first card) 'a))
+
 (define (get-card-value card big-ace?)
-  (cond ((member? (first card) '(j q k)) 10)
-        ((and (equal? (first card) 'a) big-ace?) 11)
-        ((equal? (first card) 'a) 1)
+  (cond ((and (ace-card? card) big-ace?) 11)
+        ((ace-card? card) 1)
+        ((picture-card? card) 10)
         (else (bl card))))
 
 (define (best-total hand)
   (define (helper total hand)
-      (cond ((> total 21) -1)
-            ((empty? hand) total)
-            (else (max (helper (+ total (get-card-value (first hand) #t)) (bf hand))
-                       (helper (+ total (get-card-value (first hand) #f)) (bf hand))))))
-  (helper 0 hand))
+    (cond ((> total 21) -1)
+          ((empty? hand) total)
+          (else (max (helper (+ total (get-card-value (first hand) #t)) (bf hand))
+                     (helper (+ total (get-card-value (first hand) #f)) (bf hand))))))
+  (let ((result (helper 0 hand)))
+    (if (= result -1) 22 result)))
 
 
 (define (stop-at-17 hand dealers-card)
   (if (< (best-total hand) 17) #t #f))
 
+(define (play-n strategy n)
+  (if (<= n 0)
+    0
+    (+ (twenty-one strategy) (play-n strategy (- n 1)))))
 
-
-
-
-
-
-
-
-
-
-
-
+(define (dealer-sensitive hand dealers-card)
+  (or (and (or (ace-card? dealers-card) (picture-card? dealers-card) (member? (bl dealers-card) '(7 8 9 10)))
+           (< (best-total hand) 17))
+      (and (member? (bl dealers-card) '(2 3 4 5 6)) (< (best-total hand) 12))))
 
 
 
