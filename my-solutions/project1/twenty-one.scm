@@ -56,6 +56,8 @@
   (helper 0 hand))
 
 
+(define (stop-at-17 hand dealers-card)
+  (if (< (best-total hand) 17) #t #f))
 
 
 
