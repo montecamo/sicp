@@ -78,6 +78,19 @@
 (define (stop-at n)
   (lambda (hand dealers-card) (< (best-total hand) n)))
 
+(define (has sen predicate)
+  (cond ((empty? sen) #f)
+        ((predicate (first sen)) #t)
+        (else (has (bf sen) predicate))))
+
+(define (has-hearts hand)
+  (has hand (lambda (card) (equal? (last card) 'h))))
+
+(define (valentine hand dealers-card)
+  (if (has-hearts hand)
+    ((stop-at 19) hand dealers-card)
+    ((stop-at 17) hand dealers-card)))
+
 
 
 
