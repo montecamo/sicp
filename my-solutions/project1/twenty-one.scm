@@ -99,6 +99,13 @@
 
 (define valentine-refactored (suit-strategy 'h (stop-at 19) (stop-at 17)))
 
+(define (majority one two three)
+  (lambda (hand dealers-card)
+    (if (equal? (one hand dealers-card) (two hand dealers-card))
+      (one hand dealers-card)
+      (three hand dealers-card))))
+
+
 
 
 
