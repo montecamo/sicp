@@ -75,6 +75,9 @@
            (< (best-total hand) 17))
       (and (member? (bl dealers-card) '(2 3 4 5 6)) (< (best-total hand) 12))))
 
+(define (stop-at n)
+  (lambda (hand dealers-card) (< (best-total hand) n)))
+
 
 
 
