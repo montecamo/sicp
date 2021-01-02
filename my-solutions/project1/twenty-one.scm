@@ -78,18 +78,26 @@
 (define (stop-at n)
   (lambda (hand dealers-card) (< (best-total hand) n)))
 
-(define (has sen predicate)
+(define (has? sen predicate)
   (cond ((empty? sen) #f)
         ((predicate (first sen)) #t)
         (else (has (bf sen) predicate))))
 
-(define (has-hearts hand)
-  (has hand (lambda (card) (equal? (last card) 'h))))
+(define (has-suit? suit hand)
+  (has? hand (lambda (card) (equal? (last card) suit))))
 
 (define (valentine hand dealers-card)
-  (if (has-hearts hand)
+  (if (has-suit? 'h hand)
     ((stop-at 19) hand dealers-card)
     ((stop-at 17) hand dealers-card)))
+
+(define (suit-strategy suit first second)
+  (lambda (hand dealers-card)
+    (if (has-suit? suit hand)
+      (first hand dealers-card)
+      (second hand dealers-card))))
+
+(define valentine-refactored (suit-strategy 'h (stop-at 19) (stop-at 17)))
 
 
 
