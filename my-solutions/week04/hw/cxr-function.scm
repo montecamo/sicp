@@ -1,0 +1,10 @@
+(define (reverse w)
+  (if (empty? w) "" (word (reverse (bf w)) (first w))))
+
+(define (cxr-function word)
+  (define (helper l)
+    (cond ((empty? l) (lambda (x) x))
+          ((equal? (first l) 'd) (lambda (x) ((helper (bf l)) (cdr x))))
+          ((equal? (first l) 'a) (lambda (x) ((helper (bf l)) (car x))))
+          (else (helper (bf l)))))
+  (helper (reverse word)))
