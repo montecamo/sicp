@@ -1,0 +1,11 @@
+(define-class (deck some-deck)
+  (initialize (set! some-deck (shuffle some-deck)))
+  (method (deal)
+    (if (null? some-deck)
+      '()
+    (let ((top-card (first some-deck)))
+      (set! some-deck (butfirst some-deck))
+      top-card)))
+  (method (empty?)
+    (null? some-deck)))
+
