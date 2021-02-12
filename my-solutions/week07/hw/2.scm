@@ -1,0 +1,15 @@
+(define-class (coke-machine max price)
+  (instance-vars (total-deposit 0) (total-coke 0))
+  (method (deposit amount) (set! total-deposit (+ total-deposit amount)))
+  (method (fill amount) 
+    (if (> (+ total-coke amount) max)
+      (word 'COKE 'OVERFLOW)
+      (set! total-coke (+ total-coke amount))))
+  (method (coke)
+    (cond ((> price total-deposit) (word 'NOT 'ENOUGH 'MONEY))
+          ((= total-coke 0) (word 'NOT 'ENOUGH 'COKE))
+          (else (set! total-coke (- total-coke 1))
+                (set! total-deposit (- total-deposit price))
+                total-deposit
+                ))))
+
