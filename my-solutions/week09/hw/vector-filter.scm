@@ -1,0 +1,6 @@
+(define (vector-filter pred v)
+  (define (loop new-v n)
+    (cond ((>= n (vector-length v)) new-v)
+          ((pred (vector-ref v n)) (loop (vector-append new-v (vector (vector-ref v n))) (+ n 1)))
+          (else (loop new-v (+ n 1)))))
+  (loop (make-vector 0) 0))
