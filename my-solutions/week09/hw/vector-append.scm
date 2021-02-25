@@ -1,0 +1,12 @@
+(define (vector-append v1 v2)
+  (define new-vec (make-vector (+ (vector-length v1) (vector-length v2))))
+  (define new-n 0)
+  (define (fill v n)
+    (if (>= n (vector-length v))
+      #t 
+      (begin (vector-set! new-vec new-n (vector-ref v n))
+             (set! new-n (+ new-n 1))
+             (fill v (+ n 1)))))
+  (begin (fill v1 0)
+         (fill v2 0)
+         new-vec))
