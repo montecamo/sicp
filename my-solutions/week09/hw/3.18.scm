@@ -1,0 +1,6 @@
+(define (cycle? l)
+  (define (loop ll)
+    (cond ((null? ll) #f)
+          ((eq? (car ll) first) #t)
+          (else (loop (cdr ll)))))
+  (loop l))
