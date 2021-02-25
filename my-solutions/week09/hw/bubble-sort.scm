@@ -1,0 +1,12 @@
+(define (bubble-sort v)
+  (define (loop i j max)
+    (cond ((= i max) v)
+          ((>= j max) (loop 0 1 (- max 1)))
+          ((> (vector-ref v i) (vector-ref v j))  
+           (let ((temp (vector-ref v i)))
+             (begin (vector-set! v i (vector-ref v j))
+                    (vector-set! v j temp)
+                    (loop (+ i 1) (+ j 1) max))))
+          (else (loop (+ i 1) (+ j 1) max))))
+
+  (loop 0 1 (vector-length v)))
